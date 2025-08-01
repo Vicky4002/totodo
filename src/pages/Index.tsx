@@ -7,8 +7,6 @@ import { TaskCard, Task } from '@/components/TaskCard';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { NotificationBadge } from '@/components/NotificationBadge';
-import { useTaskNotifications } from '@/hooks/use-task-notifications';
 import { 
   Plus, 
   Search, 
@@ -20,7 +18,6 @@ import {
   List
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 const Index = () => {
   const { toast } = useToast();
@@ -31,7 +28,7 @@ const Index = () => {
       description: 'Create a modern, responsive landing page for the product launch',
       completed: false,
       priority: 'high',
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
+      dueDate: '2024-08-15',
       project: 'Website Redesign',
       tags: ['design', 'frontend'],
       createdAt: '2024-08-01T10:00:00Z'
@@ -49,24 +46,12 @@ const Index = () => {
     {
       id: '3',
       title: 'Update documentation',
-      description: 'Update API documentation with new endpoints',
       completed: false,
       priority: 'low',
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Next week
+      dueDate: '2024-08-20',
       project: 'Documentation',
       tags: ['docs'],
       createdAt: '2024-08-01T08:00:00Z'
-    },
-    {
-      id: '4',
-      title: 'Client meeting preparation',
-      description: 'Prepare presentation and demo for client meeting',
-      completed: false,
-      priority: 'high',
-      dueDate: new Date().toISOString().split('T')[0], // Today
-      project: 'Sales',
-      tags: ['meeting', 'client'],
-      createdAt: '2024-08-01T07:00:00Z'
     }
   ]);
 
@@ -82,12 +67,6 @@ const Index = () => {
     const projectSet = new Set(tasks.map(task => task.project).filter(Boolean));
     return Array.from(projectSet) as string[];
   }, [tasks]);
-
-  // Task notifications
-  const { dueSoonTasks, overdueTasks } = useTaskNotifications({ 
-    tasks, 
-    enabled: true 
-  });
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -186,21 +165,6 @@ const Index = () => {
             </div>
             
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <NotificationBadge 
-                dueSoonTasks={dueSoonTasks} 
-                overdueTasks={overdueTasks}
-                onTaskClick={(task) => {
-                  // Scroll to task or highlight it
-                  const taskElement = document.getElementById(`task-${task.id}`);
-                  if (taskElement) {
-                    taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    taskElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-                    setTimeout(() => {
-                      taskElement.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
-                    }, 2000);
-                  }
-                }}
-              />
               <ThemeToggle />
               <Button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -354,10 +318,7 @@ const Index = () => {
                   onToggleComplete={toggleTaskComplete}
                   onEdit={editTask}
                   onDelete={deleteTask}
-                  className={cn(
-                    viewMode === 'grid' ? 'h-fit' : '',
-                    'transition-all duration-200'
-                  )}
+                  className={viewMode === 'grid' ? 'h-fit' : ''}
                 />
               ))}
             </div>
