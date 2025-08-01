@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { TaskCard, Task } from '@/components/TaskCard';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   Plus, 
   Search, 
@@ -149,28 +150,32 @@ const Index = () => {
     .filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-gradient-bg">
+    <div className="min-h-screen bg-gradient-bg safe-area-padding">
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
                 ToTodo
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Your productivity companion for managing tasks and projects
               </p>
             </div>
             
-            <Button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="shadow-soft"
-              size="lg"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Add Task
-            </Button>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <ThemeToggle />
+              <Button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="shadow-soft touch-target flex-1 sm:flex-none"
+                size="lg"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                <span className="hidden sm:inline">Add Task</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+            </div>
           </div>
 
           {/* Stats */}
