@@ -172,6 +172,7 @@ const Index = () => {
                   src="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" 
                   alt="ToTodo Logo" 
                   className={`h-12 w-12 sm:h-16 sm:w-16 object-contain transition-all duration-300 ${
+                    !theme ? 'brightness-100' :
                     theme === 'dark' ? 'brightness-0 invert' :
                     theme === 'ocean' ? 'hue-rotate-180 saturate-150 brightness-110' :
                     theme === 'forest' ? 'hue-rotate-90 saturate-120 brightness-90' :
