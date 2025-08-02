@@ -8,6 +8,7 @@ import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { EditTaskDialog } from '@/components/EditTaskDialog';
+import { useTheme } from '@/components/ThemeProvider';
 import { 
   Plus, 
   Search, 
@@ -22,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -169,7 +171,13 @@ const Index = () => {
                 <img 
                   src="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" 
                   alt="ToTodo Logo" 
-                  className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
+                  className={`h-12 w-12 sm:h-16 sm:w-16 object-contain transition-all duration-300 ${
+                    theme === 'dark' ? 'brightness-0 invert' :
+                    theme === 'ocean' ? 'hue-rotate-180 saturate-150 brightness-110' :
+                    theme === 'forest' ? 'hue-rotate-90 saturate-120 brightness-90' :
+                    theme === 'sunset' ? 'hue-rotate-15 saturate-150 brightness-105' :
+                    'brightness-100'
+                  }`}
                 />
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
                   ToTodo
