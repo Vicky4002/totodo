@@ -165,9 +165,16 @@ const Index = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
-                ToTodo
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <img 
+                  src="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" 
+                  alt="ToTodo Logo" 
+                  className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
+                />
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                  ToTodo
+                </h1>
+              </div>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Your productivity companion for managing tasks and projects
               </p>
