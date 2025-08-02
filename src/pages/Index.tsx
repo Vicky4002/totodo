@@ -168,18 +168,27 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <img 
-                  src="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" 
-                  alt="ToTodo Logo" 
-                  className={`h-12 w-12 sm:h-16 sm:w-16 object-contain transition-all duration-300 ${
-                    !theme ? 'brightness-100' :
-                    theme === 'dark' ? 'invert brightness-110' :
-                    theme === 'ocean' ? 'hue-rotate-180 saturate-150 brightness-110' :
-                    theme === 'forest' ? 'hue-rotate-90 saturate-120 brightness-90' :
-                    theme === 'sunset' ? 'hue-rotate-15 saturate-150 brightness-105' :
-                    'brightness-100'
-                  }`}
-                />
+                <div className={`rounded-xl p-2 transition-all duration-300 ${
+                  !theme ? 'bg-primary/10' :
+                  theme === 'dark' ? 'bg-slate-800 shadow-md' :
+                  theme === 'ocean' ? 'bg-blue-500/20 shadow-blue-500/20 shadow-lg' :
+                  theme === 'forest' ? 'bg-green-500/20 shadow-green-500/20 shadow-lg' :
+                  theme === 'sunset' ? 'bg-orange-500/20 shadow-orange-500/20 shadow-lg' :
+                  'bg-primary/10'
+                }`}>
+                  <img 
+                    src="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" 
+                    alt="ToTodo Logo" 
+                    className={`h-8 w-8 sm:h-12 sm:w-12 object-contain transition-all duration-300 ${
+                      !theme ? 'brightness-100' :
+                      theme === 'dark' ? 'invert brightness-110' :
+                      theme === 'ocean' ? 'hue-rotate-180 saturate-150 brightness-110' :
+                      theme === 'forest' ? 'hue-rotate-90 saturate-120 brightness-90' :
+                      theme === 'sunset' ? 'hue-rotate-15 saturate-150 brightness-105' :
+                      'brightness-100'
+                    }`}
+                  />
+                </div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
                   ToTodo
                 </h1>
