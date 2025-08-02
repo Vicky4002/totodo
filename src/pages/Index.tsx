@@ -7,6 +7,7 @@ import { TaskCard, Task } from '@/components/TaskCard';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { EditTaskDialog } from '@/components/EditTaskDialog';
 import { 
   Plus, 
   Search, 
@@ -56,6 +57,7 @@ const Index = () => {
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterProject, setFilterProject] = useState<string>('all');
@@ -119,10 +121,17 @@ const Index = () => {
   };
 
   const editTask = (task: Task) => {
-    // For now, just show a toast - you could implement an edit modal
+    setEditingTask(task);
+  };
+
+  const saveEditedTask = (updatedTask: Task) => {
+    setTasks(prev => prev.map(task => 
+      task.id === updatedTask.id ? updatedTask : task
+    ));
+    
     toast({
-      title: "Edit Task",
-      description: "Edit functionality coming soon!",
+      title: "Task updated!",
+      description: `"${updatedTask.title}" has been saved.`,
     });
   };
 
@@ -192,6 +201,15 @@ const Index = () => {
             />
           </div>
         )}
+
+        {/* Edit Task Dialog */}
+        <EditTaskDialog
+          task={editingTask}
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={saveEditedTask}
+          projects={projects}
+        />
 
         {/* Filters & Search */}
         <div className="mb-6 space-y-4">
