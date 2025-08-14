@@ -138,8 +138,8 @@ export const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
                 <Input
                   id="dueDate"
                   type="date"
-                  value={formData.dueDate || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                  value={formData.due_date || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
                   className="pl-10"
                 />
               </div>

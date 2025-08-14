@@ -1,14 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { TaskCard, Task } from '@/components/TaskCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TaskCard } from '@/components/TaskCard';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { EditTaskDialog } from '@/components/EditTaskDialog';
 import { useTheme } from '@/components/ThemeProvider';
+import { useAuth } from '@/hooks/useAuth';
+import { useTasks, Task } from '@/hooks/useTasks';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
   Search, 
@@ -17,46 +21,25 @@ import {
   CheckSquare,
   Square,
   LayoutGrid,
-  List
+  List,
+  LogOut,
+  User
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Design new landing page',
-      description: 'Create a modern, responsive landing page for the product launch',
-      completed: false,
-      priority: 'high',
-      dueDate: '2024-08-15',
-      project: 'Website Redesign',
-      tags: ['design', 'frontend'],
-      createdAt: '2024-08-01T10:00:00Z'
-    },
-    {
-      id: '2',
-      title: 'Review code submissions',
-      description: 'Go through pending pull requests and provide feedback',
-      completed: true,
-      priority: 'medium',
-      project: 'Development',
-      tags: ['code-review', 'backend'],
-      createdAt: '2024-08-01T09:00:00Z'
-    },
-    {
-      id: '3',
-      title: 'Update documentation',
-      completed: false,
-      priority: 'low',
-      dueDate: '2024-08-20',
-      project: 'Documentation',
-      tags: ['docs'],
-      createdAt: '2024-08-01T08:00:00Z'
-    }
-  ]);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { 
+    tasks, 
+    loading: tasksLoading, 
+    addTask, 
+    toggleTaskComplete, 
+    updateTask, 
+    deleteTask 
+  } = useTasks();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -65,6 +48,13 @@ const Index = () => {
   const [filterProject, setFilterProject] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
 
   // Derived data
   const projects = useMemo(() => {
@@ -88,66 +78,23 @@ const Index = () => {
     });
   }, [tasks, searchTerm, filterPriority, filterProject, filterStatus]);
 
-  const addTask = (newTask: Omit<Task, 'id' | 'createdAt'>) => {
-    const task: Task = {
-      ...newTask,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-    
-    setTasks(prev => [task, ...prev]);
+  const handleAddTask = async (newTask: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+    await addTask(newTask);
     setShowAddForm(false);
-    
-    toast({
-      title: "Task created!",
-      description: `"${task.title}" has been added to your list.`,
-    });
   };
 
-  const toggleTaskComplete = (id: string) => {
-    setTasks(prev => prev.map(task => {
-      if (task.id === id) {
-        const completed = !task.completed;
-        
-        if (completed) {
-          toast({
-            title: "Task completed! 🎉",
-            description: `"${task.title}" marked as done.`,
-          });
-        }
-        
-        return { ...task, completed };
-      }
-      return task;
-    }));
-  };
-
-  const editTask = (task: Task) => {
+  const handleEditTask = (task: Task) => {
     setEditingTask(task);
   };
 
-  const saveEditedTask = (updatedTask: Task) => {
-    setTasks(prev => prev.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    ));
-    
-    toast({
-      title: "Task updated!",
-      description: `"${updatedTask.title}" has been saved.`,
-    });
+  const handleSaveEditedTask = async (updatedTask: Task) => {
+    await updateTask(updatedTask.id, updatedTask);
+    setEditingTask(null);
   };
 
-  const deleteTask = (id: string) => {
-    const task = tasks.find(t => t.id === id);
-    setTasks(prev => prev.filter(t => t.id !== id));
-    
-    if (task) {
-      toast({
-        title: "Task deleted",
-        description: `"${task.title}" has been removed.`,
-        variant: "destructive"
-      });
-    }
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
   const clearFilters = () => {
@@ -159,6 +106,24 @@ const Index = () => {
 
   const activeFiltersCount = [searchTerm, filterPriority !== 'all', filterProject !== 'all', filterStatus !== 'all']
     .filter(Boolean).length;
+
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-bg flex items-center justify-center">
+        <div className="space-y-4 w-full max-w-md">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if user is not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-bg safe-area-padding">
@@ -189,9 +154,14 @@ const Index = () => {
                     }`}
                   />
                 </div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-                  ToTodo
-                </h1>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                    ToTodo
+                  </h1>
+                  <p className="text-xs text-muted-foreground">
+                    Welcome back, {user.email}
+                  </p>
+                </div>
               </div>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Your productivity companion for managing tasks and projects
@@ -200,6 +170,15 @@ const Index = () => {
             
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <ThemeToggle />
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
               <Button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="shadow-soft touch-target flex-1 sm:flex-none"
@@ -220,7 +199,7 @@ const Index = () => {
         {showAddForm && (
           <div className="mb-8">
             <AddTaskForm
-              onAddTask={addTask}
+              onAddTask={handleAddTask}
               onCancel={() => setShowAddForm(false)}
               projects={projects}
             />
@@ -232,7 +211,7 @@ const Index = () => {
           task={editingTask}
           isOpen={!!editingTask}
           onClose={() => setEditingTask(null)}
-          onSave={saveEditedTask}
+          onSave={handleSaveEditedTask}
           projects={projects}
         />
 
@@ -335,7 +314,13 @@ const Index = () => {
 
         {/* Tasks */}
         <div className="space-y-4">
-          {filteredTasks.length === 0 ? (
+          {tasksLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-32 w-full" />
+              ))}
+            </div>
+          ) : filteredTasks.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📝</div>
               <h3 className="text-lg font-semibold text-muted-foreground mb-2">
@@ -359,7 +344,7 @@ const Index = () => {
                   key={task.id}
                   task={task}
                   onToggleComplete={toggleTaskComplete}
-                  onEdit={editTask}
+                  onEdit={handleEditTask}
                   onDelete={deleteTask}
                   className={viewMode === 'grid' ? 'h-fit' : ''}
                 />

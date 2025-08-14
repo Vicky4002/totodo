@@ -13,10 +13,11 @@ export interface Task {
   description?: string;
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
-  dueDate?: string;
+  due_date?: string;
   project?: string;
   tags: string[];
-  createdAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface TaskCardProps {
@@ -46,7 +47,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onDelete,
   className
 }) => {
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
 
   return (
     <Card 
@@ -121,7 +122,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </Badge>
 
               {/* Due Date */}
-              {task.dueDate && (
+              {task.due_date && (
                 <Badge
                   variant="outline"
                   className={cn(
@@ -130,7 +131,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   )}
                 >
                   <CalendarDays className="h-2.5 w-2.5 mr-1" />
-                  {new Date(task.dueDate).toLocaleDateString()}
+                  {new Date(task.due_date).toLocaleDateString()}
                 </Badge>
               )}
 

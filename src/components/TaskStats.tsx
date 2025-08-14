@@ -13,8 +13,8 @@ export const TaskStats: React.FC<TaskStatsProps> = ({ tasks }) => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const pendingTasks = totalTasks - completedTasks;
   const overdueTasks = tasks.filter(task => 
-    task.dueDate && 
-    new Date(task.dueDate) < new Date() && 
+    task.due_date && 
+    new Date(task.due_date) < new Date() && 
     !task.completed
   ).length;
   

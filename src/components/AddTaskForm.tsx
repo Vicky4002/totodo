@@ -10,7 +10,7 @@ import { CalendarDays, Plus, X, Tag } from 'lucide-react';
 import { Task } from './TaskCard';
 
 interface AddTaskFormProps {
-  onAddTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+  onAddTask: (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
   projects: string[];
 }
@@ -40,7 +40,7 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({
       description: description.trim() || undefined,
       completed: false,
       priority,
-      dueDate: dueDate || undefined,
+      due_date: dueDate || undefined,
       project: finalProject || undefined,
       tags
     });
