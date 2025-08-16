@@ -10,8 +10,10 @@ export interface Task {
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
   due_date?: string;
+  due_time?: string;
   project?: string;
   tags: string[];
+  time_spent: number;
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +82,12 @@ export const useTasks = () => {
         ...data,
         priority: data.priority as 'low' | 'medium' | 'high'
       }, ...prev]);
+
+      // Schedule email notification if due date is set
+      if (data.due_date && data.due_date !== '') {
+        scheduleEmailNotification(data);
+      }
+
       toast({
         title: "Task added",
         description: "Your task has been created successfully.",
@@ -178,6 +186,36 @@ export const useTasks = () => {
         title: "Error deleting task",
         description: error.message,
       });
+    }
+  };
+
+  const scheduleEmailNotification = async (task: any) => {
+    if (!user?.email || !task.due_date) return;
+
+    try {
+      // Schedule notification for 1 day before due date
+      const dueDate = new Date(task.due_date);
+      const notificationDate = new Date(dueDate);
+      notificationDate.setDate(notificationDate.getDate() - 1);
+      
+      // Only schedule if notification date is in the future
+      if (notificationDate > new Date()) {
+        const { error } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: user.id,
+            task_id: task.id,
+            type: 'email',
+            scheduled_for: notificationDate.toISOString(),
+            message: `Task "${task.title}" is due tomorrow`
+          });
+
+        if (error) {
+          console.error('Error scheduling notification:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error scheduling email notification:', error);
     }
   };
 

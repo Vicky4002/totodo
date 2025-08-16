@@ -14,6 +14,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -41,7 +42,8 @@ const Auth = () => {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            display_name: displayName
+            display_name: displayName,
+            mobile_number: mobileNumber
           }
         }
       });
@@ -152,6 +154,16 @@ const Auth = () => {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-mobile">Mobile Number</Label>
+                  <Input
+                    id="signup-mobile"
+                    type="tel"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                    placeholder="+1234567890"
                   />
                 </div>
                 <div className="space-y-2">

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Plus, X, Tag } from 'lucide-react';
-import { Task } from './TaskCard';
+import { Task } from '@/hooks/useTasks';
 
 interface AddTaskFormProps {
   onAddTask: (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => void;
@@ -24,6 +24,7 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('');
   const [project, setProject] = useState('');
   const [newProject, setNewProject] = useState('');
   const [tagInput, setTagInput] = useState('');
@@ -41,8 +42,10 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({
       completed: false,
       priority,
       due_date: dueDate || undefined,
+      due_time: dueTime || undefined,
       project: finalProject || undefined,
-      tags
+      tags,
+      time_spent: 0
     });
 
     // Reset form
@@ -50,6 +53,7 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({
     setDescription('');
     setPriority('medium');
     setDueDate('');
+    setDueTime('');
     setProject('');
     setNewProject('');
     setTags([]);
@@ -147,6 +151,22 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Due Time */}
+          {dueDate && (
+            <div className="space-y-2">
+              <Label htmlFor="dueTime" className="text-sm font-medium">
+                Due Time (Optional)
+              </Label>
+              <Input
+                id="dueTime"
+                type="time"
+                value={dueTime}
+                onChange={(e) => setDueTime(e.target.value)}
+                className="transition-all duration-200 focus:ring-primary/30 focus:border-primary"
+              />
+            </div>
+          )}
 
           {/* Project */}
           <div className="space-y-2">

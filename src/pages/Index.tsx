@@ -13,6 +13,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks, Task } from '@/hooks/useTasks';
+import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
@@ -34,6 +35,7 @@ const Index = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
   const { 
     tasks, 
@@ -163,7 +165,7 @@ const Index = () => {
                     ToTodo
                   </h1>
                   <p className="text-xs text-muted-foreground">
-                    Welcome back, {user.email}
+                    Welcome back, {profile?.display_name || user.email}
                   </p>
                 </div>
               </div>
@@ -172,34 +174,34 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <ThemeToggle />
               <Button
                 onClick={() => setShowNotifications(true)}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2 relative"
+                className="touch-target p-2"
+                aria-label="Notifications"
               >
                 <Bell className="h-4 w-4" />
-                <span className="hidden sm:inline">Notifications</span>
               </Button>
               <Button
                 onClick={() => navigate('/profile')}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="touch-target p-2"
+                aria-label="Profile"
               >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Profile</span>
               </Button>
               <Button
                 onClick={handleSignOut}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="touch-target p-2"
+                aria-label="Sign Out"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign Out</span>
               </Button>
               <Button
                 onClick={() => setShowAddForm(!showAddForm)}

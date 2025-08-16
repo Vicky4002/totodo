@@ -14,11 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          scheduled_for: string
+          sent_at: string | null
+          task_id: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          scheduled_for: string
+          sent_at?: string | null
+          task_id: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          task_id?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string | null
           id: string
+          mobile_number: string | null
           updated_at: string
           user_id: string
         }
@@ -26,6 +71,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          mobile_number?: string | null
           updated_at?: string
           user_id: string
         }
@@ -33,6 +79,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          mobile_number?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -44,10 +91,12 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          due_time: string | null
           id: string
           priority: string
           project: string | null
           tags: string[] | null
+          time_spent: number | null
           title: string
           updated_at: string
           user_id: string
@@ -57,10 +106,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          due_time?: string | null
           id?: string
           priority?: string
           project?: string | null
           tags?: string[] | null
+          time_spent?: number | null
           title: string
           updated_at?: string
           user_id: string
@@ -70,10 +121,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          due_time?: string | null
           id?: string
           priority?: string
           project?: string | null
           tags?: string[] | null
+          time_spent?: number | null
           title?: string
           updated_at?: string
           user_id?: string
