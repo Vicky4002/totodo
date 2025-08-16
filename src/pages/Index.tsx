@@ -9,6 +9,7 @@ import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { EditTaskDialog } from '@/components/EditTaskDialog';
+import { NotificationCenter } from '@/components/NotificationCenter';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks, Task } from '@/hooks/useTasks';
@@ -23,7 +24,9 @@ import {
   LayoutGrid,
   List,
   LogOut,
-  User
+  User,
+  Bell,
+  BellRing
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,6 +51,7 @@ const Index = () => {
   const [filterProject, setFilterProject] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -171,6 +175,24 @@ const Index = () => {
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <ThemeToggle />
               <Button
+                onClick={() => setShowNotifications(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 relative"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="hidden sm:inline">Notifications</span>
+              </Button>
+              <Button
+                onClick={() => navigate('/profile')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </Button>
+              <Button
                 onClick={handleSignOut}
                 variant="outline"
                 size="sm"
@@ -213,6 +235,12 @@ const Index = () => {
           onClose={() => setEditingTask(null)}
           onSave={handleSaveEditedTask}
           projects={projects}
+        />
+
+        {/* Notification Center */}
+        <NotificationCenter
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
         />
 
         {/* Filters & Search */}
