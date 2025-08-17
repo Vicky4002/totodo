@@ -7,8 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks } from '@/hooks/useTasks';
+import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, 
@@ -19,43 +19,40 @@ import {
   Target,
   ArrowLeft,
   Save,
-  Settings
+  Settings,
+  Phone,
+  Edit
 } from 'lucide-react';
 
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { tasks } = useTasks();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Initialize form fields when profile loads
+  React.useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || '');
+      setMobileNumber(profile.mobile_number || '');
+    }
+  }, [profile]);
+
   const handleUpdateProfile = async () => {
-    if (!user || !displayName.trim()) return;
+    if (!user) return;
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          display_name: displayName.trim()
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
+      await updateProfile({
+        display_name: displayName.trim() || undefined,
+        mobile_number: mobileNumber.trim() || undefined
       });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error updating profile",
-        description: error.message,
-      });
+      // Error handling is already done in useProfile hook
     } finally {
       setLoading(false);
     }
@@ -66,8 +63,17 @@ const Profile = () => {
     navigate('/auth');
   };
 
-  if (!user) {
-    return null;
+  if (!user || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-bg flex items-center justify-center">
+        <div className="space-y-4 w-full max-w-md">
+          <div className="animate-pulse">
+            <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+            <div className="h-32 bg-muted rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const completedTasks = tasks.filter(task => task.completed).length;
@@ -130,6 +136,31 @@ const Profile = () => {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    This name will be displayed throughout the app
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mobileNumber">Mobile Number</Label>
+                  <Input
+                    id="mobileNumber"
+                    type="tel"
+                    placeholder="+1234567890"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Used for notifications and account security
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Current Display Name</Label>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    {profile?.display_name || 'Not set'}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -140,14 +171,28 @@ const Profile = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex gap-3">
                 <Button 
                   onClick={handleUpdateProfile}
-                  disabled={loading || !displayName.trim()}
-                  className="flex items-center gap-2"
+                  disabled={loading}
+                  className="flex items-center gap-2 flex-1"
                 >
                   <Save className="h-4 w-4" />
-                  {loading ? 'Updating...' : 'Update Profile'}
+                  {loading ? 'Updating...' : 'Save Changes'}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (profile) {
+                      setDisplayName(profile.display_name || '');
+                      setMobileNumber(profile.mobile_number || '');
+                    }
+                  }}
+                  variant="outline"
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Reset
                 </Button>
               </CardFooter>
             </Card>
