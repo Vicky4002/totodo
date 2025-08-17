@@ -163,14 +163,17 @@ export const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
           <div className="space-y-2">
             <Label>Project</Label>
             <Select
-              value={formData.project || ''}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, project: value || undefined }))}
+              value={formData.project || 'no-project'}
+              onValueChange={(value) => setFormData(prev => ({ 
+                ...prev, 
+                project: value === 'no-project' ? undefined : value 
+              }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a project..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Project</SelectItem>
+                <SelectItem value="no-project">No Project</SelectItem>
                 {projects
                   .filter(project => project && project.trim() !== '') // Ensure no empty strings
                   .map((project) => (
