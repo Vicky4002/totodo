@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, X } from 'lucide-react';
-import { Task } from '@/components/TaskCard';
+import { Task } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 
 interface EditTaskDialogProps {
@@ -146,6 +146,19 @@ export const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
             </div>
           </div>
 
+          {/* Due Time - only show if due date is set */}
+          {formData.due_date && (
+            <div className="space-y-2">
+              <Label htmlFor="dueTime">Due Time (Optional)</Label>
+              <Input
+                id="dueTime"
+                type="time"
+                value={formData.due_time || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, due_time: e.target.value }))}
+              />
+            </div>
+          )}
+
           {/* Project */}
           <div className="space-y-2">
             <Label>Project</Label>
@@ -158,7 +171,9 @@ export const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">No Project</SelectItem>
-                {projects.map((project) => (
+                {projects
+                  .filter(project => project && project.trim() !== '') // Ensure no empty strings
+                  .map((project) => (
                   <SelectItem key={project} value={project}>
                     {project}
                   </SelectItem>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Circle, Clock, AlertTriangle } from 'lucide-react';
-import { Task } from './TaskCard';
+import { Task } from '@/hooks/useTasks';
 
 interface TaskStatsProps {
   tasks: Task[];

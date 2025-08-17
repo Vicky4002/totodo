@@ -7,18 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CalendarDays, Clock, MoreHorizontal, Flag, Edit2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  due_date?: string;
-  project?: string;
-  tags: string[];
-  created_at: string;
-  updated_at: string;
-}
+import { Task } from '@/hooks/useTasks';
 
 interface TaskCardProps {
   task: Task;
@@ -132,6 +121,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 >
                   <CalendarDays className="h-2.5 w-2.5 mr-1" />
                   {new Date(task.due_date).toLocaleDateString()}
+                  {task.due_time && ` ${task.due_time}`}
+                </Badge>
+              )}
+
+              {/* Time Spent */}
+              {task.time_spent > 0 && (
+                <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
+                  <Clock className="h-2.5 w-2.5 mr-1" />
+                  {Math.floor(task.time_spent / 60)}h {task.time_spent % 60}m
                 </Badge>
               )}
 
