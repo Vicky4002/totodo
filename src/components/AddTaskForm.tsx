@@ -178,11 +178,13 @@ export const AddTaskForm: React.FC<AddTaskFormProps> = ({
                     <SelectValue placeholder="Select existing project" />
                   </SelectTrigger>
                   <SelectContent>
-                    {projects.map((proj) => (
-                      <SelectItem key={proj} value={proj}>
-                        {proj}
-                      </SelectItem>
-                    ))}
+                    {projects
+                      .filter(proj => proj && proj.trim() !== '') // Ensure no empty strings
+                      .map((proj) => (
+                        <SelectItem key={proj} value={proj}>
+                          {proj}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               )}

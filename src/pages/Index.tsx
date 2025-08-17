@@ -62,9 +62,12 @@ const Index = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Derived data
   const projects = useMemo(() => {
-    const projectSet = new Set(tasks.map(task => task.project).filter(Boolean));
+    const projectSet = new Set(
+      tasks
+        .map(task => task.project)
+        .filter(project => project && project.trim() !== '') // Filter out empty/null/undefined projects
+    );
     return Array.from(projectSet) as string[];
   }, [tasks]);
 
@@ -295,11 +298,13 @@ const Index = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map((project) => (
-                    <SelectItem key={project} value={project}>
-                      {project}
-                    </SelectItem>
-                  ))}
+                  {projects
+                    .filter(project => project && project.trim() !== '') // Ensure no empty strings
+                    .map((project) => (
+                      <SelectItem key={project} value={project}>
+                        {project}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             )}
