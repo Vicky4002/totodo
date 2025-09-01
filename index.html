@@ -10,6 +10,24 @@
     <title>ToTodo - Task Management App</title>
     <meta name="description" content="Your productivity companion for managing tasks and projects" />
     <meta name="author" content="Lovable" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
 
     <meta property="og:title" content="ToTodo - Task Management App" />
     <meta property="og:description" content="Your productivity companion for managing tasks and projects" />

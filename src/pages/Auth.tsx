@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import logoImage from "@/components/logo.png";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +106,14 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to Task Manager</CardTitle>
+          <div className="flex justify-center mb-4">
+            <img 
+              src={logoImage} 
+              alt="ToTodo Logo" 
+              className="h-16 w-16 object-contain"
+            />
+          </div>
+          <CardTitle className="text-2xl">Welcome to ToTodo</CardTitle>
           <CardDescription>Sign in to your account or create a new one</CardDescription>
         </CardHeader>
         <CardContent>

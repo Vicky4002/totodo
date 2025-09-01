@@ -1,0 +1,25 @@
+{
+  "name": "ToTodo - Task Management App",
+  "short_name": "ToTodo",
+  "description": "Your productivity companion for managing tasks and projects",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#3b82f6",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
