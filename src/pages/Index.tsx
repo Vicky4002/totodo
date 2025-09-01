@@ -4,12 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskCard } from '@/components/TaskCard';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { EditTaskDialog } from '@/components/EditTaskDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { NotificationSystem } from '@/components/NotificationSystem';
+import { AIChat } from '@/components/AIAssistant/AIChat';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks, Task } from '@/hooks/useTasks';
@@ -27,7 +30,8 @@ import {
   LogOut,
   User,
   Bell,
-  BellRing
+  BellRing,
+  Bot
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,6 +58,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tasks' | 'assistant'>('tasks');
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -136,6 +141,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-bg safe-area-padding">
+      <NotificationSystem />
+      
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
@@ -206,32 +213,196 @@ const Index = () => {
               >
                 <LogOut className="h-4 w-4" />
               </Button>
-              <Button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="shadow-soft touch-target flex-1 sm:flex-none"
-                size="lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                <span className="hidden sm:inline">Add Task</span>
-                <span className="sm:hidden">Add</span>
-              </Button>
+              {activeTab === 'tasks' && (
+                <Button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="shadow-soft touch-target flex-1 sm:flex-none"
+                  size="lg"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  <span className="hidden sm:inline">Add Task</span>
+                  <span className="sm:hidden">Add</span>
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Stats */}
-          <TaskStats tasks={tasks} />
+          {/* Stats - only show on tasks tab */}
+          {activeTab === 'tasks' && <TaskStats tasks={tasks} />}
         </div>
 
-        {/* Add Task Form */}
-        {showAddForm && (
-          <div className="mb-8">
-            <AddTaskForm
-              onAddTask={handleAddTask}
-              onCancel={() => setShowAddForm(false)}
-              projects={projects}
-            />
-          </div>
-        )}
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={(value: 'tasks' | 'assistant') => setActiveTab(value)} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="assistant" className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              AI Assistant
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="tasks" className="space-y-6">
+            {/* Add Task Form */}
+            {showAddForm && (
+              <div className="mb-8">
+                <AddTaskForm
+                  onAddTask={handleAddTask}
+                  onCancel={() => setShowAddForm(false)}
+                  projects={projects}
+                />
+              </div>
+            )}
+
+            {/* Filters & Search */}
+            <div className="mb-6 space-y-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks, descriptions, or tags..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 transition-all duration-200 focus:ring-primary/30 focus:border-primary"
+                />
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">Filters:</span>
+                </div>
+
+                <Select value={filterStatus} onValueChange={(value: 'all' | 'pending' | 'completed') => setFilterStatus(value)}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tasks</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filterPriority} onValueChange={setFilterPriority}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="high">High Priority</SelectItem>
+                    <SelectItem value="medium">Medium Priority</SelectItem>
+                    <SelectItem value="low">Low Priority</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {projects.length > 0 && (
+                  <Select value={filterProject} onValueChange={setFilterProject}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Projects</SelectItem>
+                      {projects
+                        .filter(project => project && project.trim() !== '') // Ensure no empty strings
+                        .map((project) => (
+                          <SelectItem key={project} value={project}>
+                            {project}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* View Mode Toggle */}
+                <div className="flex items-center border rounded-md">
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="rounded-r-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="rounded-l-none"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {activeFiltersCount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="text-xs h-6 px-2"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tasks */}
+            <div className="space-y-4">
+              {tasksLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-32 w-full" />
+                  ))}
+                </div>
+              ) : filteredTasks.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📝</div>
+                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                    {tasks.length === 0 ? 'No tasks yet' : 'No matching tasks'}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {tasks.length === 0 
+                      ? 'Create your first task to get started!'
+                      : 'Try adjusting your filters or search terms.'
+                    }
+                  </p>
+                </div>
+              ) : (
+                <div className={`grid gap-4 ${
+                  viewMode === 'grid' 
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                    : 'grid-cols-1'
+                }`}>
+                  {filteredTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onToggleComplete={toggleTaskComplete}
+                      onEdit={handleEditTask}
+                      onDelete={deleteTask}
+                      className={viewMode === 'grid' ? 'h-fit' : ''}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="assistant" className="space-y-6">
+            <div className="flex justify-center">
+              <AIChat />
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Edit Task Dialog */}
         <EditTaskDialog
@@ -247,146 +418,6 @@ const Index = () => {
           isOpen={showNotifications}
           onClose={() => setShowNotifications(false)}
         />
-
-        {/* Filters & Search */}
-        <div className="mb-6 space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tasks, descriptions, or tags..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 transition-all duration-200 focus:ring-primary/30 focus:border-primary"
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Filters:</span>
-            </div>
-
-            <Select value={filterStatus} onValueChange={(value: 'all' | 'pending' | 'completed') => setFilterStatus(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tasks</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="high">High Priority</SelectItem>
-                <SelectItem value="medium">Medium Priority</SelectItem>
-                <SelectItem value="low">Low Priority</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {projects.length > 0 && (
-              <Select value={filterProject} onValueChange={setFilterProject}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {projects
-                    .filter(project => project && project.trim() !== '') // Ensure no empty strings
-                    .map((project) => (
-                      <SelectItem key={project} value={project}>
-                        {project}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {/* View Mode Toggle */}
-            <div className="flex items-center border rounded-md">
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="rounded-r-none"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="rounded-l-none"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {activeFiltersCount > 0 && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">
-                  {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-xs h-6 px-2"
-                >
-                  Clear
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tasks */}
-        <div className="space-y-4">
-          {tasksLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32 w-full" />
-              ))}
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                {tasks.length === 0 ? 'No tasks yet' : 'No matching tasks'}
-              </h3>
-              <p className="text-muted-foreground">
-                {tasks.length === 0 
-                  ? 'Create your first task to get started!'
-                  : 'Try adjusting your filters or search terms.'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className={`grid gap-4 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
-            }`}>
-              {filteredTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onToggleComplete={toggleTaskComplete}
-                  onEdit={handleEditTask}
-                  onDelete={deleteTask}
-                  className={viewMode === 'grid' ? 'h-fit' : ''}
-                />
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
