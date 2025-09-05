@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
-import { useToast } from "./use-toast";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { LocalStorageService } from '@/utils/localStorageService';
+import { useSyncManager } from '@/hooks/useSyncManager';
 
 export interface Task {
   id: string;
@@ -13,7 +14,7 @@ export interface Task {
   due_time?: string;
   project?: string;
   tags: string[];
-  time_spent: number;
+  time_spent?: number;
   created_at: string;
   updated_at: string;
 }
@@ -22,210 +23,148 @@ export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { 
+    syncStatus, 
+    addTaskWithSync, 
+    updateTaskWithSync, 
+    deleteTaskWithSync, 
+    pullFromCloud,
+    syncToCloud 
+  } = useSyncManager();
 
-  const fetchTasks = async () => {
-    if (!user) {
-      setTasks([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setTasks((data || []).map(task => ({
-        ...task,
-        priority: task.priority as 'low' | 'medium' | 'high'
-      })));
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error fetching tasks",
-        description: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load tasks on mount and when user changes
   useEffect(() => {
-    fetchTasks();
+    const loadTasks = async () => {
+      setLoading(true);
+      
+      if (user) {
+        // Load from local storage first for instant display
+        const localTasks = LocalStorageService.getTasks();
+        setTasks(localTasks);
+        
+        // Then sync with cloud if online
+        if (navigator.onLine) {
+          try {
+            const cloudTasks = await pullFromCloud();
+            setTasks(cloudTasks);
+          } catch (error) {
+            console.error('Error loading tasks from cloud:', error);
+            // Keep local tasks if cloud fails
+          }
+        }
+      } else {
+        setTasks([]);
+      }
+      
+      setLoading(false);
+    };
+
+    loadTasks();
+  }, [user, pullFromCloud]);
+
+  // Set up real-time subscription for cloud updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('tasks-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Real-time task update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newTask = { ...payload.new, priority: payload.new.priority as 'low' | 'medium' | 'high' } as Task;
+            setTasks(prev => {
+              const exists = prev.find(t => t.id === newTask.id);
+              if (!exists) {
+                const updated = [...prev, newTask];
+                LocalStorageService.saveTasks(updated);
+                return updated;
+              }
+              return prev;
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedTask = { ...payload.new, priority: payload.new.priority as 'low' | 'medium' | 'high' } as Task;
+            setTasks(prev => {
+              const updated = prev.map(t => t.id === updatedTask.id ? updatedTask : t);
+              LocalStorageService.saveTasks(updated);
+              return updated;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const deletedTask = payload.old as Task;
+            setTasks(prev => {
+              const updated = prev.filter(t => t.id !== deletedTask.id);
+              LocalStorageService.saveTasks(updated);
+              return updated;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
-  const addTask = async (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return;
+  const addTask = async (newTask: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+    const task = await addTaskWithSync(newTask);
+    
+    setTasks(prev => {
+      const updated = [task, ...prev];
+      return updated;
+    });
+    
+    return task;
+  };
 
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert([{
-          ...taskData,
-          user_id: user.id
-        }])
-        .select()
-        .single();
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    await updateTaskWithSync(id, updates);
+    
+    setTasks(prev => {
+      const updated = prev.map(task => 
+        task.id === id ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
+      );
+      return updated;
+    });
+  };
 
-      if (error) {
-        throw error;
-      }
-
-      setTasks(prev => [{
-        ...data,
-        priority: data.priority as 'low' | 'medium' | 'high'
-      }, ...prev]);
-
-      // Schedule email notification if due date is set
-      if (data.due_date && data.due_date !== '') {
-        scheduleEmailNotification(data);
-      }
-
-      toast({
-        title: "Task added",
-        description: "Your task has been created successfully.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error adding task",
-        description: error.message,
-      });
+  const toggleTaskComplete = async (id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      const updates = { completed: !task.completed };
+      await updateTask(id, updates);
     }
   };
 
-  const toggleTaskComplete = async (taskId: string) => {
-    if (!user) return;
-
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-
-      const { error } = await supabase
-        .from('tasks')
-        .update({ completed: !task.completed })
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
-      setTasks(prev => prev.map(t => 
-        t.id === taskId ? { ...t, completed: !t.completed } : t
-      ));
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error updating task",
-        description: error.message,
-      });
-    }
-  };
-
-  const updateTask = async (taskId: string, updates: Partial<Task>) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update(updates)
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
-      setTasks(prev => prev.map(t => 
-        t.id === taskId ? { ...t, ...updates } : t
-      ));
-
-      toast({
-        title: "Task updated",
-        description: "Your task has been updated successfully.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error updating task",
-        description: error.message,
-      });
-    }
-  };
-
-  const deleteTask = async (taskId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
-      setTasks(prev => prev.filter(t => t.id !== taskId));
-      toast({
-        title: "Task deleted",
-        description: "Your task has been deleted successfully.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error deleting task",
-        description: error.message,
-      });
-    }
-  };
-
-  const scheduleEmailNotification = async (task: any) => {
-    if (!user?.email || !task.due_date) return;
-
-    try {
-      // Schedule notification for 1 day before due date
-      const dueDate = new Date(task.due_date);
-      const notificationDate = new Date(dueDate);
-      notificationDate.setDate(notificationDate.getDate() - 1);
-      
-      // Only schedule if notification date is in the future
-      if (notificationDate > new Date()) {
-        const { error } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: user.id,
-            task_id: task.id,
-            type: 'email',
-            scheduled_for: notificationDate.toISOString(),
-            message: `Task "${task.title}" is due tomorrow`
-          });
-
-        if (error) {
-          console.error('Error scheduling notification:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Error scheduling email notification:', error);
-    }
+  const deleteTask = async (id: string) => {
+    await deleteTaskWithSync(id);
+    
+    setTasks(prev => {
+      const updated = prev.filter(task => task.id !== id);
+      return updated;
+    });
   };
 
   return {
     tasks,
     loading,
+    syncStatus,
     addTask,
-    toggleTaskComplete,
     updateTask,
+    toggleTaskComplete,
     deleteTask,
-    refetch: fetchTasks
+    syncToCloud,
+    refetch: async () => {
+      const cloudTasks = await pullFromCloud();
+      setTasks(cloudTasks);
+    }
   };
 };

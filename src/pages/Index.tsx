@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { TaskCard } from '@/components/TaskCard';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
@@ -13,6 +14,7 @@ import { EditTaskDialog } from '@/components/EditTaskDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { NotificationSystem } from '@/components/NotificationSystem';
 import { AIChat } from '@/components/AIAssistant/AIChat';
+import { SyncStatus } from '@/components/SyncStatus';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks, Task } from '@/hooks/useTasks';
@@ -31,7 +33,10 @@ import {
   User,
   Bell,
   BellRing,
-  Bot
+  Bot,
+  Database,
+  Cloud,
+  Smartphone
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -44,10 +49,12 @@ const Index = () => {
   const { 
     tasks, 
     loading: tasksLoading, 
+    syncStatus,
     addTask, 
     toggleTaskComplete, 
     updateTask, 
-    deleteTask 
+    deleteTask,
+    syncToCloud
   } = useTasks();
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -58,6 +65,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showSyncStatus, setShowSyncStatus] = useState(false);
   const [activeTab, setActiveTab] = useState<'tasks' | 'assistant'>('tasks');
 
   // Redirect to auth if not logged in
@@ -186,6 +194,42 @@ const Index = () => {
             
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <ThemeToggle />
+              
+              {/* Sync Status Indicator */}
+              <Dialog open={showSyncStatus} onOpenChange={setShowSyncStatus}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-target p-2 relative"
+                    aria-label="Storage Status"
+                  >
+                    {syncStatus.isOnline ? (
+                      <Cloud className="h-4 w-4" />
+                    ) : (
+                      <Smartphone className="h-4 w-4" />
+                    )}
+                    {syncStatus.pendingChanges > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-1 -right-1 px-1 min-w-[16px] h-4 text-xs"
+                      >
+                        {syncStatus.pendingChanges}
+                      </Badge>
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Storage & Sync Status</DialogTitle>
+                    <DialogDescription>
+                      View your local and cloud storage information
+                    </DialogDescription>
+                  </DialogHeader>
+                  <SyncStatus />
+                </DialogContent>
+              </Dialog>
+              
               <Button
                 onClick={() => setShowNotifications(true)}
                 variant="outline"
@@ -237,6 +281,11 @@ const Index = () => {
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
               Tasks
+              {syncStatus.pendingChanges > 0 && (
+                <Badge variant="secondary" className="ml-1 px-1 text-xs">
+                  {syncStatus.pendingChanges}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="assistant" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
