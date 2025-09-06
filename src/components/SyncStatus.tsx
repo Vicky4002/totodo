@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { useToast } from '@/hooks/use-toast';
 import { useSyncManager } from '@/hooks/useSyncManager';
 import { LocalStorageService } from '@/utils/localStorageService';
@@ -44,16 +45,21 @@ export const SyncStatus: React.FC = () => {
   const localTasks = LocalStorageService.getTasks();
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Database className="h-5 w-5" />
-          Storage & Sync
-        </CardTitle>
-        <CardDescription>
-          Manage your local and cloud data
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      {/* Offline-First Capabilities */}
+      <OfflineIndicator />
+      
+      {/* Detailed Sync Status */}
+      <Card className="w-full max-w-md">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Database className="h-5 w-5" />
+            Detailed Sync Status
+          </CardTitle>
+          <CardDescription>
+            Advanced sync and storage management
+          </CardDescription>
+        </CardHeader>
       
       <CardContent className="space-y-4">
         {/* Connection Status */}
@@ -197,13 +203,18 @@ export const SyncStatus: React.FC = () => {
 
         {/* Offline Notice */}
         {!syncStatus.isOnline && (
-          <div className="bg-muted/50 rounded-lg p-3">
-            <p className="text-xs text-muted-foreground">
-              You're working offline. Changes will sync automatically when you're back online.
+          <div className="bg-green-50 dark:bg-green-950 rounded-lg p-3 border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Offline Mode Active</span>
+            </div>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+              Full functionality available offline. All changes saved locally and will sync when online.
             </p>
           </div>
         )}
       </CardContent>
     </Card>
+    </div>
   );
 };

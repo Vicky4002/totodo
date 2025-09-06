@@ -32,28 +32,29 @@ export const useTasks = () => {
     syncToCloud 
   } = useSyncManager();
 
-  // Load tasks on mount and when user changes
+  // Load tasks on mount and when user changes - ALWAYS work offline first
   useEffect(() => {
     const loadTasks = async () => {
       setLoading(true);
       
+      // ALWAYS load from local storage first - app works offline-first
+      const localTasks = LocalStorageService.getTasks();
+      setTasks(localTasks);
+      
       if (user) {
-        // Load from local storage first for instant display
-        const localTasks = LocalStorageService.getTasks();
-        setTasks(localTasks);
-        
-        // Then sync with cloud if online
+        // Only attempt cloud sync if explicitly online and user is authenticated
         if (navigator.onLine) {
           try {
             const cloudTasks = await pullFromCloud();
-            setTasks(cloudTasks);
+            // Only update if cloud has newer data
+            if (cloudTasks.length >= localTasks.length) {
+              setTasks(cloudTasks);
+            }
           } catch (error) {
-            console.error('Error loading tasks from cloud:', error);
-            // Keep local tasks if cloud fails
+            console.error('Cloud sync failed, continuing offline:', error);
+            // App continues to work with local data
           }
         }
-      } else {
-        setTasks([]);
       }
       
       setLoading(false);
