@@ -369,6 +369,33 @@ All colors MUST be HSL.
     }
   }
 
+  /* Performance optimizations */
+  .transform-gpu {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .will-change-transform {
+    will-change: transform, opacity;
+  }
+
+  /* Smooth scrolling improvements */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hardware acceleration for animations */
+  .animate-slide-in,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-bounce-in {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
   /* Capacitor safe area support */
   .capacitor-safe-area {
     padding-top: env(safe-area-inset-top);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { TaskCard } from '@/components/TaskCard';
+import { VirtualTaskList } from '@/components/VirtualTaskList';
+import { PullToRefresh } from '@/components/PullToRefresh';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskStats } from '@/components/TaskStats';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -100,31 +102,37 @@ const Index = () => {
     });
   }, [tasks, searchTerm, filterPriority, filterProject, filterStatus]);
 
-  const handleAddTask = async (newTask: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleAddTask = useCallback(async (newTask: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
     await addTask(newTask);
     setShowAddForm(false);
-  };
+  }, [addTask]);
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = useCallback((task: Task) => {
     setEditingTask(task);
-  };
+  }, []);
 
-  const handleSaveEditedTask = async (updatedTask: Task) => {
+  const handleSaveEditedTask = useCallback(async (updatedTask: Task) => {
     await updateTask(updatedTask.id, updatedTask);
     setEditingTask(null);
-  };
+  }, [updateTask]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await signOut();
     navigate('/auth');
-  };
+  }, [signOut, navigate]);
 
-  const clearFilters = () => {
+  const handleRefresh = useCallback(async () => {
+    if (syncToCloud) {
+      await syncToCloud();
+    }
+  }, [syncToCloud]);
+
+  const clearFilters = useCallback(() => {
     setSearchTerm('');
     setFilterPriority('all');
     setFilterProject('all');
     setFilterStatus('all');
-  };
+  }, []);
 
   const activeFiltersCount = [searchTerm, filterPriority !== 'all', filterProject !== 'all', filterStatus !== 'all']
     .filter(Boolean).length;
@@ -426,22 +434,18 @@ const Index = () => {
                   </p>
                 </div>
               ) : (
-                <div className={`grid gap-4 ${
-                  viewMode === 'grid' 
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                    : 'grid-cols-1'
-                }`}>
-                  {filteredTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onToggleComplete={toggleTaskComplete}
-                      onEdit={handleEditTask}
-                      onDelete={deleteTask}
-                      className={viewMode === 'grid' ? 'h-fit' : ''}
-                    />
-                  ))}
-                </div>
+                <PullToRefresh 
+                  onRefresh={handleRefresh}
+                  className="w-full"
+                >
+                  <VirtualTaskList
+                    tasks={filteredTasks}
+                    onToggleComplete={toggleTaskComplete}
+                    onEdit={handleEditTask}
+                    onDelete={deleteTask}
+                    viewMode={viewMode}
+                  />
+                </PullToRefresh>
               )}
             </div>
           </TabsContent>

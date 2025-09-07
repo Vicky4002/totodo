@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CalendarDays, Clock, MoreHorizontal, Flag, Edit2, Trash2 } from 'lucide-react';
+import { CalendarDays, Clock, MoreHorizontal, Flag, Edit2, Trash2, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useGesture } from '@/hooks/useGesture';
 
 import { Task } from '@/hooks/useTasks';
 
@@ -29,30 +30,77 @@ const priorityIcons = {
   high: '!!!'
 };
 
-export const TaskCard: React.FC<TaskCardProps> = ({
+const TaskCard: React.FC<TaskCardProps> = memo(({
   task,
   onToggleComplete,
   onEdit,
   onDelete,
   className
 }) => {
+  const [isPressed, setIsPressed] = useState(false);
+  const [swipeX, setSwipeX] = useState(0);
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
+
+  const handleToggleComplete = useCallback(() => {
+    onToggleComplete(task.id);
+  }, [task.id, onToggleComplete]);
+
+  const handleEdit = useCallback(() => {
+    onEdit(task);
+  }, [task, onEdit]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(task.id);
+  }, [task.id, onDelete]);
+
+  const gestureProps = useGesture({
+    onSwipeLeft: handleEdit,
+    onSwipeRight: handleToggleComplete,
+    onTap: handleEdit,
+    onLongPress: () => {
+      // Haptic feedback would go here in a native app
+      setIsPressed(true);
+      setTimeout(() => setIsPressed(false), 200);
+    }
+  });
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setIsPressed(true);
+    gestureProps.onTouchStart(e);
+  }, [gestureProps]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    setIsPressed(false);
+    setSwipeX(0);
+    gestureProps.onTouchEnd(e);
+  }, [gestureProps]);
 
   return (
     <Card 
       className={cn(
-        "group transition-all duration-200 hover:shadow-card animate-slide-in",
-        task.completed && "opacity-75",
-        isOverdue && "border-destructive/30 bg-destructive/5",
+        "group transition-all duration-300 hover:shadow-card animate-slide-in cursor-pointer",
+        "transform hover:scale-[1.02] active:scale-[0.98]",
+        "border border-border/50 hover:border-primary/30",
+        task.completed && "opacity-75 hover:opacity-90",
+        isOverdue && "border-destructive/30 bg-destructive/5 animate-pulse",
+        isPressed && "scale-[0.98]",
         className
       )}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={gestureProps.onTouchMove}
+      style={{ transform: `translateX(${swipeX}px)` }}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Checkbox
             checked={task.completed}
-            onCheckedChange={() => onToggleComplete(task.id)}
-            className="mt-1 data-[state=checked]:bg-success data-[state=checked]:border-success"
+            onCheckedChange={handleToggleComplete}
+            className={cn(
+              "mt-1 transition-all duration-200 hover:scale-110",
+              "data-[state=checked]:bg-success data-[state=checked]:border-success",
+              task.completed && "animate-task-complete"
+            )}
           />
           
           <div className="flex-1 min-w-0">
@@ -66,31 +114,40 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 {task.title}
               </h3>
               
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleEdit}
+                  className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                >
+                  <Edit2 className="h-3 w-3" />
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                      className="h-6 w-6 text-muted-foreground hover:text-foreground transition-all duration-200"
                     >
                       <MoreHorizontal className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(task)}>
+                  <DropdownMenuContent align="end" className="animate-fade-in">
+                    <DropdownMenuItem onClick={handleEdit}>
                       <Edit2 className="h-3 w-3 mr-2" />
-                      Edit
+                      Edit Task
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => onDelete(task.id)}
+                      onClick={handleDelete}
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="h-3 w-3 mr-2" />
-                      Delete
+                      Delete Task
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
               </div>
             </div>
 
@@ -156,4 +213,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+TaskCard.displayName = 'TaskCard';
+
+export { TaskCard };
