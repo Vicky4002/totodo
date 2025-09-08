@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Smartphone, Shield } from "lucide-react";
 import logoImage from "@/components/logo.png";
+import { useGesture } from "@/hooks/useGesture";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,9 +31,17 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
+  // Haptic feedback for mobile
+  const triggerHapticFeedback = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    triggerHapticFeedback();
 
     try {
       const redirectUrl = `${window.location.origin}/`;
@@ -50,6 +59,7 @@ const Auth = () => {
       });
 
       if (error) {
+        triggerHapticFeedback();
         toast({
           variant: "destructive",
           title: "Sign up failed",
@@ -62,6 +72,7 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      triggerHapticFeedback();
       toast({
         variant: "destructive",
         title: "Error",
@@ -75,6 +86,7 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    triggerHapticFeedback();
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -83,6 +95,7 @@ const Auth = () => {
       });
 
       if (error) {
+        triggerHapticFeedback();
         toast({
           variant: "destructive",
           title: "Sign in failed",
@@ -92,6 +105,7 @@ const Auth = () => {
         navigate("/");
       }
     } catch (error: any) {
+      triggerHapticFeedback();
       toast({
         variant: "destructive",
         title: "Error",
@@ -102,26 +116,60 @@ const Auth = () => {
     }
   };
 
+  // Gesture support
+  const gestureProps = useGesture({
+    onSwipeLeft: () => {
+      // Switch to signup tab on swipe left
+      const signupTab = document.querySelector('[value="signup"]') as HTMLElement;
+      if (signupTab) signupTab.click();
+    },
+    onSwipeRight: () => {
+      // Switch to signin tab on swipe right  
+      const signinTab = document.querySelector('[value="signin"]') as HTMLElement;
+      if (signinTab) signinTab.click();
+    }
+  });
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <img 
-              src={logoImage} 
-              alt="ToTodo Logo" 
-              className="h-16 w-16 object-contain"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 safe-area-inset">
+      <Card className="w-full max-w-md mobile-card">
+        <CardHeader className="text-center pb-6">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <img 
+                src={logoImage} 
+                alt="ToTodo Logo" 
+                className="h-20 w-20 object-contain mobile-logo"
+              />
+              <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
+                <Smartphone className="h-3 w-3" />
+              </div>
+            </div>
           </div>
-          <CardTitle className="text-2xl">Welcome to ToTodo</CardTitle>
-          <CardDescription>Sign in to your account or create a new one</CardDescription>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            Welcome to ToTodo
+          </CardTitle>
+          <CardDescription className="text-base mt-2">
+            Your mobile productivity companion
+          </CardDescription>
+          <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+            <Shield className="h-3 w-3" />
+            <span>Secure • Mobile-First • Offline-Ready</span>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent {...gestureProps}>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-12 mobile-tabs">
+              <TabsTrigger value="signin" className="text-sm font-medium">
+                Sign In
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="text-sm font-medium">
+                Sign Up
+              </TabsTrigger>
             </TabsList>
+            <div className="text-center mt-2 text-xs text-muted-foreground">
+              Swipe to switch tabs
+            </div>
             
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
@@ -132,6 +180,10 @@ const Auth = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 text-base mobile-input"
+                    placeholder="your@email.com"
+                    autoComplete="email"
+                    inputMode="email"
                     required
                   />
                 </div>
@@ -142,11 +194,14 @@ const Auth = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 text-base mobile-input"
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full h-12 text-lg mobile-button" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                   Sign In
                 </Button>
               </form>
@@ -161,6 +216,9 @@ const Auth = () => {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
+                    className="h-12 text-base mobile-input"
+                    placeholder="Your display name"
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -171,7 +229,10 @@ const Auth = () => {
                     type="tel"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value)}
-                    placeholder="+1234567890"
+                    className="h-12 text-base mobile-input"
+                    placeholder="+1 (555) 123-4567"
+                    autoComplete="tel"
+                    inputMode="tel"
                   />
                 </div>
                 <div className="space-y-2">
@@ -181,6 +242,10 @@ const Auth = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 text-base mobile-input"
+                    placeholder="your@email.com"
+                    autoComplete="email"
+                    inputMode="email"
                     required
                   />
                 </div>
@@ -191,12 +256,15 @@ const Auth = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 text-base mobile-input"
+                    placeholder="Choose a secure password"
+                    autoComplete="new-password"
                     required
                     minLength={6}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full h-12 text-lg mobile-button" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                   Sign Up
                 </Button>
               </form>
