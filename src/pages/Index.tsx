@@ -16,6 +16,7 @@ import { EditTaskDialog } from '@/components/EditTaskDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { NotificationSystem } from '@/components/NotificationSystem';
 import { AIChat } from '@/components/AIAssistant/AIChat';
+import { PWAInstall } from '@/components/PWAInstall';
 import { SyncStatus } from '@/components/SyncStatus';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
@@ -456,6 +457,9 @@ const Index = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* PWA Install Prompt */}
+        <PWAInstall />
 
         {/* Edit Task Dialog */}
         <EditTaskDialog
