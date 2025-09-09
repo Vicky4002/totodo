@@ -3,17 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
 
-interface Profile {
-  id: string;
-  user_id: string;
-  display_name?: string;
-  mobile_number?: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export const useProfile = () => {
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -37,7 +28,7 @@ export const useProfile = () => {
       }
 
       setProfile(data);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error fetching profile",
@@ -52,7 +43,7 @@ export const useProfile = () => {
     fetchProfile();
   }, [user]);
 
-  const updateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = async (updates) => {
     if (!user) return;
 
     try {
@@ -77,7 +68,7 @@ export const useProfile = () => {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error updating profile",

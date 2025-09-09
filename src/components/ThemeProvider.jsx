@@ -1,14 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'ocean' | 'forest' | 'sunset';
-
-interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  themes: { value: Theme; label: string; icon: string }[];
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext(undefined);
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
@@ -18,34 +10,36 @@ export const useTheme = () => {
   return context;
 };
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
+export const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('totodo-theme') as Theme;
+      const saved = localStorage.getItem('totodo-theme');
       return saved || 'light';
     }
     return 'light';
   });
 
   const themes = [
-    { value: 'light' as Theme, label: 'Light', icon: '☀️' },
-    { value: 'dark' as Theme, label: 'Dark', icon: '🌙' },
-    { value: 'ocean' as Theme, label: 'Ocean', icon: '🌊' },
-    { value: 'forest' as Theme, label: 'Forest', icon: '🌲' },
-    { value: 'sunset' as Theme, label: 'Sunset', icon: '🌅' },
+    { value: 'light', label: 'Light', icon: '☀️' },
+    { value: 'dark', label: 'Dark', icon: '🌙' },
+    { value: 'ocean', label: 'Ocean', icon: '🌊' },
+    { value: 'forest', label: 'Forest', icon: '🌲' },
+    { value: 'sunset', label: 'Sunset', icon: '🌅' },
   ];
 
   useEffect(() => {
-    const root = document.documentElement;
-    
-    // Remove all theme classes
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('totodo-theme', theme);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
     root.classList.remove('light', 'dark', 'ocean', 'forest', 'sunset');
     
-    // Add current theme class
-    root.classList.add(theme);
-    
-    // Save to localStorage
-    localStorage.setItem('totodo-theme', theme);
+    if (theme) {
+      root.classList.add(theme);
+    }
   }, [theme]);
 
   return (
