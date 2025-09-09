@@ -8,27 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Bot, User, Send, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-interface Message {
-  id: string;
-  content: string;
-  isBot: boolean;
-  timestamp: Date;
-}
-
-interface TaskSummary {
-  total: number;
-  completed: number;
-  pending: number;
-  overdue: number;
-  dueToday: number;
-}
-
 export const AIChat = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [taskSummary, setTaskSummary] = useState<TaskSummary | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [taskSummary, setTaskSummary] = useState(null);
+  const scrollAreaRef = useRef(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -52,7 +37,7 @@ export const AIChat = () => {
   const sendMessage = async () => {
     if (!input.trim() || !user) return;
 
-    const userMessage: Message = {
+    const userMessage = {
       id: Date.now().toString(),
       content: input.trim(),
       isBot: false,
@@ -73,7 +58,7 @@ export const AIChat = () => {
 
       if (error) throw error;
 
-      const botMessage: Message = {
+      const botMessage = {
         id: (Date.now() + 1).toString(),
         content: data.response,
         isBot: true,
@@ -94,7 +79,7 @@ export const AIChat = () => {
         variant: "destructive",
       });
 
-      const errorMessage: Message = {
+      const errorMessage = {
         id: (Date.now() + 1).toString(),
         content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
         isBot: true,
@@ -107,7 +92,7 @@ export const AIChat = () => {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();

@@ -71,7 +71,7 @@ const Auth = () => {
           description: "We've sent you a confirmation link to complete your registration.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       triggerHapticFeedback();
       toast({
         variant: "destructive",
@@ -104,7 +104,7 @@ const Auth = () => {
       } else {
         navigate("/");
       }
-    } catch (error: any) {
+    } catch (error) {
       triggerHapticFeedback();
       toast({
         variant: "destructive",
