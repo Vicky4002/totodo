@@ -3,13 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
-
 export const PWAInstall = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const { toast } = useToast();
@@ -17,7 +12,7 @@ export const PWAInstall = () => {
   useEffect(() => {
     // Check if app is already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isInWebAppiOS = (window.navigator as any).standalone === true;
+    const isInWebAppiOS = window.navigator.standalone === true;
     const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches;
     
     if (isStandalone || isInWebAppiOS || isInWebAppChrome) {
@@ -25,9 +20,9 @@ export const PWAInstall = () => {
       return;
     }
 
-    const handleBeforeInstallPrompt = (e: Event) => {
+    const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setDeferredPrompt(e);
       setShowInstallPrompt(true);
     };
 
