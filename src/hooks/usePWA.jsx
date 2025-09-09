@@ -1,15 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-
-interface PWACapabilities {
-  isInstalled: boolean;
-  isOnline: boolean;
-  canInstall: boolean;
-  hasUpdate: boolean;
-  isStandalone: boolean;
-}
+import React, { useState, useEffect, useCallback } from 'react';
 
 export const usePWA = () => {
-  const [capabilities, setCapabilities] = useState<PWACapabilities>({
+  const [capabilities, setCapabilities] = useState({
     isInstalled: false,
     isOnline: navigator.onLine,
     canInstall: false,
@@ -18,11 +10,11 @@ export const usePWA = () => {
   });
 
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [registration, setRegistration] = useState(null);
 
   const updateCapabilities = useCallback(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (window.navigator as any).standalone === true;
+                        window.navigator.standalone === true;
     
     const isInstalled = isStandalone || 
                        localStorage.getItem('pwa-installed') === 'true';
@@ -54,7 +46,7 @@ export const usePWA = () => {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     // Listen for beforeinstallprompt
-    const handleBeforeInstallPrompt = (e: Event) => {
+    const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setCapabilities(prev => ({ ...prev, canInstall: true }));
     };
@@ -91,7 +83,7 @@ export const usePWA = () => {
   }, [updateCapabilities]);
 
   const installApp = useCallback(async () => {
-    const prompt = (window as any).deferredPrompt;
+    const prompt = window.deferredPrompt;
     if (prompt) {
       try {
         await prompt.prompt();
@@ -100,7 +92,7 @@ export const usePWA = () => {
           localStorage.setItem('pwa-installed', 'true');
           updateCapabilities();
         }
-        (window as any).deferredPrompt = null;
+        window.deferredPrompt = null;
       } catch (error) {
         console.error('Failed to install app:', error);
       }
@@ -114,7 +106,7 @@ export const usePWA = () => {
     }
   }, [registration]);
 
-  const shareApp = useCallback(async (data?: ShareData) => {
+  const shareApp = useCallback(async (data) => {
     if (navigator.share) {
       try {
         await navigator.share({

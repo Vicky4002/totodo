@@ -84,7 +84,7 @@ const Index = () => {
         .map(task => task.project)
         .filter(project => project && project.trim() !== '') // Filter out empty/null/undefined projects
     );
-    return Array.from(projectSet) as string[];
+    return Array.from(projectSet);
   }, [tasks]);
 
   const filteredTasks = useMemo(() => {
