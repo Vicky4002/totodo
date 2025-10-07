@@ -15,6 +15,13 @@ interface Message {
   timestamp: Date;
 }
 
+interface CreatedTask {
+  id: string;
+  title: string;
+  priority: string;
+  due_date?: string;
+}
+
 interface TaskSummary {
   total: number;
   completed: number;
@@ -36,7 +43,7 @@ export const AIChat = () => {
     // Add welcome message
     setMessages([{
       id: '1',
-      content: "Hello! I'm TaskBuddy, your AI task management assistant powered by Google Gemini. I can analyze your tasks, provide intelligent insights, suggest prioritization strategies, and help you stay productive. I'll also send you real-time notifications when you complete tasks! How can I help you today?",
+      content: "Hello! I'm TaskBuddy, your AI task management assistant powered by Google Gemini. I can:\n\n✨ **CREATE TASKS** for you automatically\n📊 Analyze your productivity patterns\n🎯 Suggest task prioritization\n⏰ Send real-time notifications\n💡 Provide intelligent insights\n\nJust tell me what you need to do, and I'll create the task for you! Or ask me anything about your tasks. How can I help you today?",
       isBot: true,
       timestamp: new Date()
     }]);
@@ -67,7 +74,8 @@ export const AIChat = () => {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: {
           message: input.trim(),
-          userId: user.id
+          userId: user.id,
+          conversationHistory: messages.slice(-10) // Send last 10 messages for context
         }
       });
 
@@ -84,6 +92,15 @@ export const AIChat = () => {
       
       if (data.taskSummary) {
         setTaskSummary(data.taskSummary);
+      }
+
+      // Show success notification if tasks were created
+      if (data.tasksCreated && data.tasksCreated.length > 0) {
+        toast({
+          title: "✅ Tasks Created!",
+          description: `Successfully created ${data.tasksCreated.length} task(s). They're now in your task list!`,
+          duration: 5000,
+        });
       }
 
     } catch (error) {
