@@ -17,15 +17,33 @@ import {
 import { useTasks } from '@/hooks/useTasks';
 import { useToast } from '@/hooks/use-toast';
 
-export const NotificationCenter = ({ isOpen, onClose }) => {
-  const [notifications, setNotifications] = useState([]);
+interface Notification {
+  id: string;
+  type: 'info' | 'warning' | 'success' | 'error';
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}
+
+interface NotificationCenterProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const { tasks } = useTasks();
   const { toast } = useToast();
 
   // Generate notifications based on tasks
   useEffect(() => {
     const generateNotifications = () => {
-      const newNotifications = [];
+      const newNotifications: Notification[] = [];
 
       // Overdue tasks
       const overdueTasks = tasks.filter(task => {
@@ -104,7 +122,7 @@ export const NotificationCenter = ({ isOpen, onClose }) => {
     generateNotifications();
   }, [tasks]);
 
-  const markAsRead = (id) => {
+  const markAsRead = (id: string) => {
     setNotifications(prev => 
       prev.map(notif => 
         notif.id === id ? { ...notif, read: true } : notif
@@ -116,13 +134,13 @@ export const NotificationCenter = ({ isOpen, onClose }) => {
     setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
   };
 
-  const removeNotification = (id) => {
+  const removeNotification = (id: string) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const getNotificationIcon = (type) => {
+  const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
       case 'success':
         return <CheckCircle2 className="h-4 w-4 text-success" />;

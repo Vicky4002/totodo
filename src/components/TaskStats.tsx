@@ -4,7 +4,11 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Circle, Clock, AlertTriangle } from 'lucide-react';
 import { Task } from '@/hooks/useTasks';
 
-export const TaskStats = ({ tasks }) => {
+interface TaskStatsProps {
+  tasks: Task[];
+}
+
+export const TaskStats: React.FC<TaskStatsProps> = ({ tasks }) => {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.completed).length;
   const pendingTasks = totalTasks - completedTasks;

@@ -2,7 +2,16 @@ import React, { memo, useMemo } from 'react';
 import { TaskCard } from './TaskCard';
 import { Task } from '@/hooks/useTasks';
 
-const TaskItem = memo(({ index, data }) => {
+interface VirtualTaskListProps {
+  tasks: Task[];
+  onToggleComplete: (id: string) => void;
+  onEdit: (task: Task) => void;
+  onDelete: (id: string) => void;
+  viewMode: 'list' | 'grid';
+  height?: number;
+}
+
+const TaskItem = memo(({ index, data }: any) => {
   const { tasks, onToggleComplete, onEdit, onDelete } = data;
   const task = tasks[index];
 
@@ -21,7 +30,7 @@ const TaskItem = memo(({ index, data }) => {
 
 TaskItem.displayName = 'TaskItem';
 
-export const VirtualTaskList = memo(({
+export const VirtualTaskList: React.FC<VirtualTaskListProps> = memo(({
   tasks,
   onToggleComplete,
   onEdit,

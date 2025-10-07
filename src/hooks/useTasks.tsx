@@ -20,7 +20,7 @@ export interface Task {
 }
 
 export const useTasks = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { 
@@ -126,7 +126,7 @@ export const useTasks = () => {
     return task;
   };
 
-  const updateTask = async (id, updates) => {
+  const updateTask = async (id: string, updates: Partial<Task>) => {
     await updateTaskWithSync(id, updates);
     
     setTasks(prev => {
@@ -137,7 +137,7 @@ export const useTasks = () => {
     });
   };
 
-  const toggleTaskComplete = async (id) => {
+  const toggleTaskComplete = async (id: string) => {
     const task = tasks.find(t => t.id === id);
     if (task) {
       const updates = { completed: !task.completed };
@@ -145,7 +145,7 @@ export const useTasks = () => {
     }
   };
 
-  const deleteTask = async (id) => {
+  const deleteTask = async (id: string) => {
     await deleteTaskWithSync(id);
     
     setTasks(prev => {

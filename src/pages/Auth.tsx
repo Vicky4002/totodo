@@ -38,7 +38,7 @@ const Auth = () => {
     }
   };
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     triggerHapticFeedback();
@@ -71,7 +71,7 @@ const Auth = () => {
           description: "We've sent you a confirmation link to complete your registration.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       triggerHapticFeedback();
       toast({
         variant: "destructive",
@@ -83,7 +83,7 @@ const Auth = () => {
     }
   };
 
-  const handleSignIn = async (e) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     triggerHapticFeedback();
@@ -104,7 +104,7 @@ const Auth = () => {
       } else {
         navigate("/");
       }
-    } catch (error) {
+    } catch (error: any) {
       triggerHapticFeedback();
       toast({
         variant: "destructive",
@@ -120,12 +120,12 @@ const Auth = () => {
   const gestureProps = useGesture({
     onSwipeLeft: () => {
       // Switch to signup tab on swipe left
-      const signupTab = document.querySelector('[value="signup"]');
+      const signupTab = document.querySelector('[value="signup"]') as HTMLElement;
       if (signupTab) signupTab.click();
     },
     onSwipeRight: () => {
       // Switch to signin tab on swipe right  
-      const signinTab = document.querySelector('[value="signin"]');
+      const signinTab = document.querySelector('[value="signin"]') as HTMLElement;
       if (signinTab) signinTab.click();
     }
   });

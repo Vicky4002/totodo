@@ -9,7 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Plus, X, Tag } from 'lucide-react';
 import { Task } from '@/hooks/useTasks';
 
-export const AddTaskForm = ({
+interface AddTaskFormProps {
+  onAddTask: (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => void;
+  onCancel: () => void;
+  projects: string[];
+}
+
+export const AddTaskForm: React.FC<AddTaskFormProps> = ({
   onAddTask,
   onCancel,
   projects
@@ -22,9 +28,9 @@ export const AddTaskForm = ({
   const [project, setProject] = useState('');
   const [newProject, setNewProject] = useState('');
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<string[]>([]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
@@ -62,11 +68,11 @@ export const AddTaskForm = ({
     }
   };
 
-  const removeTag = (tagToRemove) => {
+  const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleTagKeyPress = (e) => {
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addTag();

@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { CheckSquare, Loader2 } from 'lucide-react';
 
-export const SplashScreen = ({ onComplete }) => {
+interface SplashScreenProps {
+  onComplete: () => void;
+}
+
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('Initializing...');
 

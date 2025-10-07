@@ -10,14 +10,22 @@ import { Calendar, X } from 'lucide-react';
 import { Task } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 
-export const EditTaskDialog = ({
+interface EditTaskDialogProps {
+  task: Task | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (task: Task) => void;
+  projects: string[];
+}
+
+export const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
   task,
   isOpen,
   onClose,
   onSave,
   projects
 }) => {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<Partial<Task>>({});
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
@@ -29,10 +37,10 @@ export const EditTaskDialog = ({
   const handleSave = () => {
     if (!task || !formData.title?.trim()) return;
     
-    const updatedTask = {
+    const updatedTask: Task = {
       ...task,
       ...formData,
-      title: formData.title.trim(),
+      title: formData.title!.trim(),
       description: formData.description?.trim(),
       tags: formData.tags || []
     };
@@ -51,14 +59,14 @@ export const EditTaskDialog = ({
     }
   };
 
-  const removeTag = (tagToRemove) => {
+  const removeTag = (tagToRemove: string) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags?.filter(tag => tag !== tagToRemove) || []
     }));
   };
 
-  const handleKeyPress = (e, action) => {
+  const handleKeyPress = (e: React.KeyboardEvent, action: () => void) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       action();
@@ -109,7 +117,7 @@ export const EditTaskDialog = ({
               <Label>Priority</Label>
               <Select
                 value={formData.priority}
-                onValueChange={(value) => 
+                onValueChange={(value: 'low' | 'medium' | 'high') => 
                   setFormData(prev => ({ ...prev, priority: value }))}
               >
                 <SelectTrigger>

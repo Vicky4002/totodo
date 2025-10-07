@@ -16,11 +16,10 @@ import { EditTaskDialog } from '@/components/EditTaskDialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { NotificationSystem } from '@/components/NotificationSystem';
 import { AIChat } from '@/components/AIAssistant/AIChat';
-import { PWAInstall } from '@/components/PWAInstall';
 import { SyncStatus } from '@/components/SyncStatus';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks, Task } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -61,15 +60,15 @@ const Index = () => {
   } = useTasks();
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [filterProject, setFilterProject] = useState('all');
-  const [viewMode, setViewMode] = useState('list');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [filterProject, setFilterProject] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSyncStatus, setShowSyncStatus] = useState(false);
-  const [activeTab, setActiveTab] = useState('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'assistant'>('tasks');
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -84,7 +83,7 @@ const Index = () => {
         .map(task => task.project)
         .filter(project => project && project.trim() !== '') // Filter out empty/null/undefined projects
     );
-    return Array.from(projectSet);
+    return Array.from(projectSet) as string[];
   }, [tasks]);
 
   const filteredTasks = useMemo(() => {
@@ -103,16 +102,16 @@ const Index = () => {
     });
   }, [tasks, searchTerm, filterPriority, filterProject, filterStatus]);
 
-  const handleAddTask = useCallback(async (newTask) => {
+  const handleAddTask = useCallback(async (newTask: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
     await addTask(newTask);
     setShowAddForm(false);
   }, [addTask]);
 
-  const handleEditTask = useCallback((task) => {
+  const handleEditTask = useCallback((task: Task) => {
     setEditingTask(task);
   }, []);
 
-  const handleSaveEditedTask = useCallback(async (updatedTask) => {
+  const handleSaveEditedTask = useCallback(async (updatedTask: Task) => {
     await updateTask(updatedTask.id, updatedTask);
     setEditingTask(null);
   }, [updateTask]);
@@ -285,7 +284,7 @@ const Index = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(value: 'tasks' | 'assistant') => setActiveTab(value)} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
@@ -334,7 +333,7 @@ const Index = () => {
                   <span className="text-sm font-medium text-muted-foreground">Filters:</span>
                 </div>
 
-                <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value)}>
+                <Select value={filterStatus} onValueChange={(value: 'all' | 'pending' | 'completed') => setFilterStatus(value)}>
                   <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>
@@ -457,9 +456,6 @@ const Index = () => {
             </div>
           </TabsContent>
         </Tabs>
-
-        {/* PWA Install Prompt */}
-        <PWAInstall />
 
         {/* Edit Task Dialog */}
         <EditTaskDialog

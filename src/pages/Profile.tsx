@@ -51,7 +51,7 @@ const Profile = () => {
         display_name: displayName.trim() || undefined,
         mobile_number: mobileNumber.trim() || undefined
       });
-    } catch (error) {
+    } catch (error: any) {
       // Error handling is already done in useProfile hook
     } finally {
       setLoading(false);

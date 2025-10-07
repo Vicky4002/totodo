@@ -2,7 +2,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const PullToRefresh = ({
+interface PullToRefreshProps {
+  onRefresh: () => Promise<void>;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   onRefresh,
   children,
   className
@@ -11,17 +17,17 @@ export const PullToRefresh = ({
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const touchStartY = useRef(0);
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const threshold = 80;
 
-  const handleTouchStart = useCallback((e) => {
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     if (window.scrollY === 0) {
       touchStartY.current = e.touches[0].clientY;
     }
   }, []);
 
-  const handleTouchMove = useCallback((e) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (window.scrollY === 0 && touchStartY.current > 0) {
       const currentY = e.touches[0].clientY;
       const distance = currentY - touchStartY.current;

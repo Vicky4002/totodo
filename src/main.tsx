@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
+import App from './App.tsx'
 import './index.css'
 
 // Register service worker for offline capability
@@ -24,4 +24,4 @@ if ('caches' in window) {
   });
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+createRoot(document.getElementById("root")!).render(<App />);

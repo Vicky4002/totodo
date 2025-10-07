@@ -2,38 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="theme-color" content="#3b82f6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="ToTodo" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="format-detection" content="telephone=no" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" />
     <title>ToTodo - Task Management App</title>
-    
-    <!-- PWA Meta Tags -->
     <meta name="description" content="Your productivity companion for managing tasks and projects" />
-    <meta name="application-name" content="ToTodo" />
-    <meta name="msapplication-TileColor" content="#3b82f6" />
-    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="author" content="Lovable" />
     
-    <!-- SEO Meta Tags -->
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+
     <meta property="og:title" content="ToTodo - Task Management App" />
     <meta property="og:description" content="Your productivity companion for managing tasks and projects" />
-    <meta property="og:image" content="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" />
-    <meta property="og:url" content="https://4964ffc6-dd40-4742-adb8-43f44e7c1985.lovableproject.com" />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="src/components/logo.png" />
+
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ToTodo - Task Management App" />
-    <meta name="twitter:description" content="Your productivity companion for managing tasks and projects" />
-    <meta name="twitter:image" content="/lovable-uploads/80f966c5-4aaf-420d-898b-4d30d3e0903b.png" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="src/components/logo.png" />
   </head>
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

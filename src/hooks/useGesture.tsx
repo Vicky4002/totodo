@@ -1,6 +1,14 @@
 import { useCallback, useRef } from 'react';
 
-export const useGesture = (options) => {
+interface GestureOptions {
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
+  onTap?: () => void;
+  onLongPress?: () => void;
+  threshold?: number;
+}
+
+export const useGesture = (options: GestureOptions) => {
   const {
     onSwipeLeft,
     onSwipeRight,
@@ -10,9 +18,9 @@ export const useGesture = (options) => {
   } = options;
 
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
-  const longPressTimerRef = useRef();
+  const longPressTimerRef = useRef<NodeJS.Timeout>();
 
-  const handleTouchStart = useCallback((e) => {
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
     touchStartRef.current = {
       x: touch.clientX,
@@ -35,7 +43,7 @@ export const useGesture = (options) => {
     }
   }, []);
 
-  const handleTouchEnd = useCallback((e) => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     // Clear long press timer
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
