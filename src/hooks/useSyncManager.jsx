@@ -5,16 +5,8 @@ import { Task } from '@/hooks/useTasks';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-export interface SyncStatus {
-  isOnline: boolean;
-  isSyncing: boolean;
-  lastSync: number;
-  pendingChanges: number;
-  hasConflicts: boolean;
-}
-
 export const useSyncManager = () => {
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+  const [syncStatus, setSyncStatus] = useState({
     isOnline: navigator.onLine,
     isSyncing: false,
     lastSync: LocalStorageService.getLastSync(),
@@ -248,7 +240,7 @@ export const useSyncManager = () => {
   }, [user, toast]);
 
   // Update task with sync
-  const updateTaskWithSync = useCallback(async (taskId: string, updates: Partial<Task>): Promise<void> => {
+  const updateTaskWithSync = useCallback(async (taskId, updates) => {
     const updatedTask = { ...updates, updated_at: new Date().toISOString() };
 
     // Update locally first
@@ -307,7 +299,7 @@ export const useSyncManager = () => {
   }, [user]);
 
   // Delete task with sync
-  const deleteTaskWithSync = useCallback(async (taskId: string): Promise<void> => {
+  const deleteTaskWithSync = useCallback(async (taskId) => {
     // Delete locally first
     LocalStorageService.deleteTask(taskId);
 

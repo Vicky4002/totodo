@@ -10,14 +10,6 @@ import { useGesture } from '@/hooks/useGesture';
 
 import { Task } from '@/hooks/useTasks';
 
-interface TaskCardProps {
-  task: Task;
-  onToggleComplete: (id: string) => void;
-  onEdit: (task: Task) => void;
-  onDelete: (id: string) => void;
-  className?: string;
-}
-
 const priorityColors = {
   low: 'bg-muted text-muted-foreground',
   medium: 'bg-warning-light text-warning border-warning/20',
@@ -30,7 +22,7 @@ const priorityIcons = {
   high: '!!!'
 };
 
-const TaskCard: React.FC<TaskCardProps> = memo(({
+const TaskCard = memo(({
   task,
   onToggleComplete,
   onEdit,
@@ -64,12 +56,12 @@ const TaskCard: React.FC<TaskCardProps> = memo(({
     }
   });
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+  const handleTouchStart = useCallback((e) => {
     setIsPressed(true);
     gestureProps.onTouchStart(e);
   }, [gestureProps]);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+  const handleTouchEnd = useCallback((e) => {
     setIsPressed(false);
     setSwipeX(0);
     gestureProps.onTouchEnd(e);

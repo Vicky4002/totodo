@@ -2,15 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { LocalStorageService } from '@/utils/localStorageService';
 import { Task } from '@/hooks/useTasks';
 
-export interface OfflineCapabilities {
-  isOnline: boolean;
-  storageQuota: { used: number; available: number; percentage: number };
-  hasData: boolean;
-  canWorkOffline: boolean;
-}
-
 export const useOfflineStorage = () => {
-  const [capabilities, setCapabilities] = useState<OfflineCapabilities>({
+  const [capabilities, setCapabilities] = useState({
     isOnline: navigator.onLine,
     storageQuota: { used: 0, available: 0, percentage: 0 },
     hasData: false,
@@ -89,20 +82,20 @@ export const useOfflineStorage = () => {
     URL.revokeObjectURL(url);
   }, []);
 
-  const importData = useCallback((file: File): Promise<void> => {
+  const importData = useCallback((file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
       reader.onload = (e) => {
         try {
-          const data = JSON.parse(e.target?.result as string);
+          const data = JSON.parse(e.target?.result);
           
           if (data.tasks && Array.isArray(data.tasks)) {
             // Merge with existing tasks (avoid duplicates)
             const existingTasks = LocalStorageService.getTasks();
             const existingIds = new Set(existingTasks.map(t => t.id));
             
-            const newTasks = data.tasks.filter((task: Task) => !existingIds.has(task.id));
+            const newTasks = data.tasks.filter((task) => !existingIds.has(task.id));
             const allTasks = [...existingTasks, ...newTasks];
             
             LocalStorageService.saveTasks(allTasks);

@@ -7,24 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface Task {
-  id: string;
-  title: string;
-  due_date: string | null;
-  due_time: string | null;
-  priority: string;
-  completed: boolean;
-}
-
-interface NotificationItem {
-  id: string;
-  type: 'overdue' | 'due_today' | 'due_soon';
-  task: Task;
-  message: string;
-}
-
 export const NotificationSystem = () => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notifications, setNotifications] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -46,9 +30,9 @@ export const NotificationSystem = () => {
       const today = now.toISOString().split('T')[0];
       const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
-      const newNotifications: NotificationItem[] = [];
+      const newNotifications = [];
 
-      tasks.forEach((task: Task) => {
+      tasks.forEach((task) => {
         if (!task.due_date) return;
 
         const dueDate = task.due_date;
@@ -133,11 +117,11 @@ export const NotificationSystem = () => {
     }
   }, [user]);
 
-  const dismissNotification = (notificationId: string) => {
+  const dismissNotification = (notificationId) => {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type) => {
     switch (type) {
       case 'overdue':
         return <AlertTriangle className="h-4 w-4 text-destructive" />;
@@ -150,7 +134,7 @@ export const NotificationSystem = () => {
     }
   };
 
-  const getNotificationVariant = (type: string) => {
+  const getNotificationVariant = (type) => {
     switch (type) {
       case 'overdue':
         return 'destructive';

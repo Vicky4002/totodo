@@ -17,33 +17,15 @@ import {
 import { useTasks } from '@/hooks/useTasks';
 import { useToast } from '@/hooks/use-toast';
 
-interface Notification {
-  id: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-}
-
-interface NotificationCenterProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+export const NotificationCenter = ({ isOpen, onClose }) => {
+  const [notifications, setNotifications] = useState([]);
   const { tasks } = useTasks();
   const { toast } = useToast();
 
   // Generate notifications based on tasks
   useEffect(() => {
     const generateNotifications = () => {
-      const newNotifications: Notification[] = [];
+      const newNotifications = [];
 
       // Overdue tasks
       const overdueTasks = tasks.filter(task => {
@@ -122,7 +104,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     generateNotifications();
   }, [tasks]);
 
-  const markAsRead = (id: string) => {
+  const markAsRead = (id) => {
     setNotifications(prev => 
       prev.map(notif => 
         notif.id === id ? { ...notif, read: true } : notif
@@ -134,13 +116,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
   };
 
-  const removeNotification = (id: string) => {
+  const removeNotification = (id) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type) => {
     switch (type) {
       case 'success':
         return <CheckCircle2 className="h-4 w-4 text-success" />;
