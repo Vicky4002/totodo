@@ -10,10 +10,10 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 // Lazy load components for better performance
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Profile = lazy(() => import("./pages/Profile"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const Index = lazy(() => import("./pages/Index.tsx"));
+const Auth = lazy(() => import("./pages/Auth.tsx"));
+const Profile = lazy(() => import("./pages/Profile.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
 
