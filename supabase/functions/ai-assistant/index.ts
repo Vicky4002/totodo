@@ -76,7 +76,7 @@ serve(async (req) => {
       !task.completed && task.due_date && task.due_date > currentDate
     ).slice(0, 5);
 
-    const systemPrompt = `You are TaskBuddy, a helpful AI assistant for task management. You help users organize, track, and manage their tasks efficiently.
+    const systemPrompt = `You are TaskBuddy, a helpful AI assistant for task management powered by Google Gemini. You help users organize, track, and manage their tasks efficiently.
 
 User Context:
 - User name: ${userName}
@@ -91,41 +91,47 @@ Current Tasks Overview:
 ${taskContext.length > 0 ? JSON.stringify(taskContext, null, 2) : 'No tasks found'}
 
 Key capabilities:
-1. Help create, update, and organize tasks
-2. Provide task insights and reminders
-3. Suggest productivity improvements
-4. Answer questions about task management
-5. Help prioritize work
+1. Analyze tasks and provide intelligent insights
+2. Suggest task prioritization and time management strategies
+3. Identify patterns in task completion and productivity
+4. Provide motivational support and reminders
+5. Help break down complex tasks into manageable steps
+6. Detect overdue tasks and suggest recovery strategies
 
-Always be helpful, encouraging, and proactive in suggesting ways to improve productivity. When users ask about creating or updating tasks, explain that they can use the main task interface to make changes, but you can help them plan and organize their approach.
+Always be helpful, encouraging, and proactive. Provide actionable advice based on the user's task data. When users ask about creating or updating tasks, guide them on best practices but remind them to use the main interface for actual changes.
 
-If there are overdue tasks, gently remind the user about them. If there are tasks due today, highlight them. Be supportive and motivating in your responses.`;
+If there are overdue tasks, acknowledge them constructively and suggest a plan. If there are tasks due today, prioritize them. Be supportive, motivating, and use data-driven insights to help improve productivity.`;
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not found');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('Lovable API key not found');
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        max_tokens: 1000,
-        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
+      console.error('Lovable AI error:', response.status, errorData);
+      
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      if (response.status === 402) {
+        throw new Error('AI credits exhausted. Please add more credits to continue.');
+      }
       throw new Error('Failed to get AI response');
     }
 

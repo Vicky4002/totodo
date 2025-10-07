@@ -17,6 +17,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { NotificationSystem } from '@/components/NotificationSystem';
 import { AIChat } from '@/components/AIAssistant/AIChat';
 import { SyncStatus } from '@/components/SyncStatus';
+import { TaskCompletionNotification } from '@/components/TaskCompletionNotification';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks, Task } from '@/hooks/useTasks';
@@ -158,6 +159,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-bg safe-area-padding">
       <NotificationSystem />
+      <TaskCompletionNotification />
       
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Header */}

@@ -36,7 +36,7 @@ export const AIChat = () => {
     // Add welcome message
     setMessages([{
       id: '1',
-      content: "Hello! I'm TaskBuddy, your AI assistant for task management. I can help you organize your tasks, provide insights, and remind you about important deadlines. How can I help you today?",
+      content: "Hello! I'm TaskBuddy, your AI task management assistant powered by Google Gemini. I can analyze your tasks, provide intelligent insights, suggest prioritization strategies, and help you stay productive. I'll also send you real-time notifications when you complete tasks! How can I help you today?",
       isBot: true,
       timestamp: new Date()
     }]);
