@@ -120,12 +120,12 @@ const Auth = () => {
   const gestureProps = useGesture({
     onSwipeLeft: () => {
       // Switch to signup tab on swipe left
-      const signupTab = document.querySelector('[value="signup"]') as HTMLElement;
+      const signupTab = document.querySelector('[value="signup"]');
       if (signupTab) signupTab.click();
     },
     onSwipeRight: () => {
       // Switch to signin tab on swipe right  
-      const signinTab = document.querySelector('[value="signin"]') as HTMLElement;
+      const signinTab = document.querySelector('[value="signin"]');
       if (signinTab) signinTab.click();
     }
   });
