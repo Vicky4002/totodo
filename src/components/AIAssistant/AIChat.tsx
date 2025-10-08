@@ -30,7 +30,11 @@ interface TaskSummary {
   dueToday: number;
 }
 
-export const AIChat = () => {
+interface AIChatProps {
+  onTasksChanged?: () => void;
+}
+
+export const AIChat = ({ onTasksChanged }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -95,6 +99,10 @@ export const AIChat = () => {
       }
 
       // Show success notifications for task actions
+      const hasChanges = (data.tasksCreated && data.tasksCreated.length > 0) ||
+                        (data.tasksUpdated && data.tasksUpdated.length > 0) ||
+                        (data.tasksDeleted && data.tasksDeleted.length > 0);
+      
       if (data.tasksCreated && data.tasksCreated.length > 0) {
         toast({
           title: "✅ Tasks Created!",
@@ -117,6 +125,11 @@ export const AIChat = () => {
           description: `Successfully deleted ${data.tasksDeleted.length} task(s).`,
           duration: 5000,
         });
+      }
+      
+      // Refetch tasks if any changes were made
+      if (hasChanges && onTasksChanged) {
+        onTasksChanged();
       }
 
     } catch (error) {

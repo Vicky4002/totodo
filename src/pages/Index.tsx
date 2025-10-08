@@ -57,7 +57,8 @@ const Index = () => {
     toggleTaskComplete, 
     updateTask, 
     deleteTask,
-    syncToCloud
+    syncToCloud,
+    refetch
   } = useTasks();
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -454,7 +455,7 @@ const Index = () => {
 
           <TabsContent value="assistant" className="space-y-6">
             <div className="flex justify-center">
-              <AIChat />
+              <AIChat onTasksChanged={refetch} />
             </div>
           </TabsContent>
         </Tabs>
