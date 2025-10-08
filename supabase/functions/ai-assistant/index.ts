@@ -76,7 +76,7 @@ serve(async (req) => {
       !task.completed && task.due_date && task.due_date > currentDate
     ).slice(0, 5);
 
-    const systemPrompt = `You are TaskBuddy, an intelligent AI assistant for task management powered by Google Gemini. You can CREATE tasks directly in the database.
+    const systemPrompt = `You are TaskBuddy, an intelligent AI assistant for task management powered by Google Gemini. You can CREATE, UPDATE, and DELETE tasks directly in the database.
 
 User Context:
 - User name: ${userName}
@@ -90,20 +90,31 @@ User Context:
 Current Tasks:
 ${taskContext.length > 0 ? JSON.stringify(taskContext, null, 2) : 'No tasks found'}
 
-You can CREATE TASKS directly using the create_task function. Use it when:
-- User explicitly asks to create/add a task
-- User describes something they need to do
-- You suggest a task and user agrees
-- You proactively recommend breaking down work into tasks
+You have full access to manage tasks:
 
-When creating tasks:
+1. CREATE TASKS using create_task function when:
+   - User explicitly asks to create/add a task
+   - User describes something they need to do
+   - You suggest a task and user agrees
+
+2. UPDATE TASKS using update_task function when:
+   - User asks to modify, change, or update a task
+   - User wants to mark a task as complete/incomplete
+   - User wants to change priority, due date, description, etc.
+   - You need to reschedule or reprioritize tasks
+
+3. DELETE TASKS using delete_task function when:
+   - User explicitly asks to delete/remove a task
+   - Task is no longer needed or relevant
+
+When managing tasks:
 - Set appropriate priority (high/medium/low) based on urgency
 - Add due dates when mentioned or logically inferred
 - Include relevant tags for categorization
-- Add projects for related work
 - Write clear, actionable task titles
+- Always confirm actions with the user
 
-Be proactive - if you detect work that should become a task, suggest creating it and then DO IT with the function!`;
+Be proactive and helpful - analyze tasks and suggest improvements!`;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -172,6 +183,74 @@ Be proactive - if you detect work that should become a task, suggest creating it
                 required: ['title', 'priority']
               }
             }
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'update_task',
+              description: 'Update an existing task. Use this when the user wants to modify a task or mark it as complete/incomplete.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  task_id: {
+                    type: 'string',
+                    description: 'The ID of the task to update'
+                  },
+                  title: { 
+                    type: 'string',
+                    description: 'Updated task title (optional)'
+                  },
+                  description: { 
+                    type: 'string',
+                    description: 'Updated description (optional)'
+                  },
+                  priority: { 
+                    type: 'string',
+                    enum: ['low', 'medium', 'high'],
+                    description: 'Updated priority level (optional)'
+                  },
+                  due_date: { 
+                    type: 'string',
+                    description: 'Updated due date in YYYY-MM-DD format (optional)'
+                  },
+                  due_time: { 
+                    type: 'string',
+                    description: 'Updated due time in HH:MM:SS format (optional)'
+                  },
+                  completed: {
+                    type: 'boolean',
+                    description: 'Mark task as complete (true) or incomplete (false) (optional)'
+                  },
+                  project: { 
+                    type: 'string',
+                    description: 'Updated project name (optional)'
+                  },
+                  tags: { 
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Updated tags array (optional)'
+                  }
+                },
+                required: ['task_id']
+              }
+            }
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'delete_task',
+              description: 'Delete a task from the database. Use this when the user explicitly asks to delete or remove a task.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  task_id: {
+                    type: 'string',
+                    description: 'The ID of the task to delete'
+                  }
+                },
+                required: ['task_id']
+              }
+            }
           }
         ],
         tool_choice: 'auto'
@@ -194,17 +273,18 @@ Be proactive - if you detect work that should become a task, suggest creating it
     const data = await response.json();
     const choice = data.choices[0];
     
-    // Check if AI wants to call the create_task function
+    // Check if AI wants to call functions
     if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
-      console.log('AI is creating tasks:', choice.message.tool_calls);
+      console.log('AI is calling functions:', choice.message.tool_calls);
       
       const createdTasks = [];
+      const updatedTasks = [];
+      const deletedTasks = [];
       
       for (const toolCall of choice.message.tool_calls) {
         if (toolCall.function.name === 'create_task') {
           const taskData = JSON.parse(toolCall.function.arguments);
           
-          // Create the task in the database
           const { data: newTask, error: createError } = await supabase
             .from('tasks')
             .insert({
@@ -228,10 +308,56 @@ Be proactive - if you detect work that should become a task, suggest creating it
           
           console.log('Task created successfully:', newTask);
           createdTasks.push(newTask);
+        } else if (toolCall.function.name === 'update_task') {
+          const updateData = JSON.parse(toolCall.function.arguments);
+          const { task_id, ...updates } = updateData;
+          
+          const { data: updatedTask, error: updateError } = await supabase
+            .from('tasks')
+            .update(updates)
+            .eq('id', task_id)
+            .eq('user_id', userId)
+            .select()
+            .single();
+          
+          if (updateError) {
+            console.error('Error updating task:', updateError);
+            throw new Error('Failed to update task');
+          }
+          
+          console.log('Task updated successfully:', updatedTask);
+          updatedTasks.push(updatedTask);
+        } else if (toolCall.function.name === 'delete_task') {
+          const deleteData = JSON.parse(toolCall.function.arguments);
+          
+          const { error: deleteError } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('id', deleteData.task_id)
+            .eq('user_id', userId);
+          
+          if (deleteError) {
+            console.error('Error deleting task:', deleteError);
+            throw new Error('Failed to delete task');
+          }
+          
+          console.log('Task deleted successfully:', deleteData.task_id);
+          deletedTasks.push({ id: deleteData.task_id });
         }
       }
       
-      // Generate a follow-up response about the created tasks
+      // Generate a follow-up response about the actions taken
+      let actionSummary = '';
+      if (createdTasks.length > 0) {
+        actionSummary += `Created ${createdTasks.length} task(s). `;
+      }
+      if (updatedTasks.length > 0) {
+        actionSummary += `Updated ${updatedTasks.length} task(s). `;
+      }
+      if (deletedTasks.length > 0) {
+        actionSummary += `Deleted ${deletedTasks.length} task(s). `;
+      }
+      
       const followUpResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -244,11 +370,11 @@ Be proactive - if you detect work that should become a task, suggest creating it
             ...messages,
             { 
               role: 'assistant', 
-              content: `I've created ${createdTasks.length} task(s) for you.` 
+              content: actionSummary 
             },
             { 
               role: 'user', 
-              content: `Confirm to the user what tasks were created: ${JSON.stringify(createdTasks.map(t => ({ title: t.title, priority: t.priority, due_date: t.due_date })))}. Be encouraging and brief.` 
+              content: `Confirm to the user the actions taken. Created: ${JSON.stringify(createdTasks.map(t => ({ title: t.title, priority: t.priority })))}. Updated: ${JSON.stringify(updatedTasks.map(t => ({ title: t.title })))}. Deleted: ${deletedTasks.length} task(s). Be encouraging and brief.` 
             }
           ]
         }),
@@ -257,15 +383,17 @@ Be proactive - if you detect work that should become a task, suggest creating it
       const followUpData = await followUpResponse.json();
       const aiResponse = followUpData.choices[0].message.content;
       
-      console.log('AI Assistant response with task creation:', aiResponse);
+      console.log('AI Assistant response with task actions:', aiResponse);
       
       return new Response(JSON.stringify({ 
         response: aiResponse,
         tasksCreated: createdTasks,
+        tasksUpdated: updatedTasks,
+        tasksDeleted: deletedTasks,
         taskSummary: {
-          total: tasks.length + createdTasks.length,
+          total: tasks.length + createdTasks.length - deletedTasks.length,
           completed: tasks.filter(t => t.completed).length,
-          pending: tasks.filter(t => !t.completed).length + createdTasks.length,
+          pending: tasks.filter(t => !t.completed).length + createdTasks.length - deletedTasks.length,
           overdue: overdueTasks.length,
           dueToday: todayTasks.length
         }

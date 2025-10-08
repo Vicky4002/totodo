@@ -43,7 +43,7 @@ export const AIChat = () => {
     // Add welcome message
     setMessages([{
       id: '1',
-      content: "Hello! I'm TaskBuddy, your AI task management assistant powered by Google Gemini. I can:\n\n✨ **CREATE TASKS** for you automatically\n📊 Analyze your productivity patterns\n🎯 Suggest task prioritization\n⏰ Send real-time notifications\n💡 Provide intelligent insights\n\nJust tell me what you need to do, and I'll create the task for you! Or ask me anything about your tasks. How can I help you today?",
+      content: "Hello! I'm TaskBuddy, your AI task management assistant powered by Google Gemini. I have full access to your tasks and can:\n\n✨ **CREATE TASKS** - Just tell me what you need to do\n✏️ **UPDATE TASKS** - Change priority, due dates, or mark complete\n🗑️ **DELETE TASKS** - Remove tasks you no longer need\n📊 **ANALYZE** - Get insights on your productivity\n🎯 **ORGANIZE** - Help prioritize and schedule your work\n\nTry saying:\n- \"Create a task to buy groceries\"\n- \"Mark the first task as complete\"\n- \"Change the priority of my report to high\"\n- \"Delete the meeting task\"\n\nHow can I help you manage your tasks today?",
       isBot: true,
       timestamp: new Date()
     }]);
@@ -94,11 +94,27 @@ export const AIChat = () => {
         setTaskSummary(data.taskSummary);
       }
 
-      // Show success notification if tasks were created
+      // Show success notifications for task actions
       if (data.tasksCreated && data.tasksCreated.length > 0) {
         toast({
           title: "✅ Tasks Created!",
           description: `Successfully created ${data.tasksCreated.length} task(s). They're now in your task list!`,
+          duration: 5000,
+        });
+      }
+      
+      if (data.tasksUpdated && data.tasksUpdated.length > 0) {
+        toast({
+          title: "✏️ Tasks Updated!",
+          description: `Successfully updated ${data.tasksUpdated.length} task(s).`,
+          duration: 5000,
+        });
+      }
+      
+      if (data.tasksDeleted && data.tasksDeleted.length > 0) {
+        toast({
+          title: "🗑️ Tasks Deleted!",
+          description: `Successfully deleted ${data.tasksDeleted.length} task(s).`,
           duration: 5000,
         });
       }
